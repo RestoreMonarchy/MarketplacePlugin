@@ -1,0 +1,25 @@
+﻿@page "/trunk"
+
+@if (Items != null)
+{
+    <div class="row">
+        <div class="col-6">
+            <h3>Your Sellings</h3>
+            <ul class="list-group">
+                @foreach (var item in sellingItems)
+                {
+                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> @item.Item.ItemName for $@item.Price</li>
+                }
+            </ul>
+        </div>
+        <div class="col-6">
+            <h3>Your Shoppings</h3>
+            <ul class="list-group">
+                @foreach (var item in boughtItems)
+                {
+                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> @item.Item.ItemName for $@item.Price</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
