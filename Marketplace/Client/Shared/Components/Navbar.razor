@@ -1,4 +1,6 @@
-﻿<nav class="navbar navbar-expand-lg navbar-light bg-light">
+﻿@inject NavigationManager navManager
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand" href="/">Marketplace</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -8,11 +10,14 @@
             <li class="nav-item active">
                 <a class="nav-link" href="/">Home</a>
             </li>
+            <li class="nav-item active">
+                <a class="nav-link" href="/trunk">Trunk</a>
+            </li>
         </ul>
         <AuthorizeView>
             <Authorized>
                 <span class="navbar-text">
-                    @context.User.Identity.Name
+                    Balance: <b>@context.User.FindFirst("Balance").Value</b>
                 </span>
                 <form class="form-inline ml-lg-2" method="get" action="/signout">
                     <button class="btn btn-primary my-2 my-sm-0" type="submit">Sign Out</button>

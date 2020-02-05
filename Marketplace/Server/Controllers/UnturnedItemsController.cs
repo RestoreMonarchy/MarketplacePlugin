@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 using Marketplace.Server.Database;
 using Marketplace.Shared;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace Marketplace.Server.Controllers
 {
@@ -17,7 +12,7 @@ namespace Marketplace.Server.Controllers
     public class UnturnedItemsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private SqlConnection connection => new SqlConnection(_configuration["ConnectionString"]);
+        private SqlConnection connection => new SqlConnection(_configuration.GetConnectionString("WebDatabase"));
 
         public UnturnedItemsController(IConfiguration configuration)
         {

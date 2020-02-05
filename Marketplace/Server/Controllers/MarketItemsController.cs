@@ -5,6 +5,7 @@ using Marketplace.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace Marketplace.Server.Controllers
 {
@@ -13,7 +14,8 @@ namespace Marketplace.Server.Controllers
     public class MarketItemsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private SqlConnection connection => new SqlConnection(_configuration["ConnectionString"]);
+        private SqlConnection connection => new SqlConnection(_configuration.GetConnectionString("WebDatabase"));
+        private MySqlConnection serversConnection => new MySqlConnection(_configuration.GetConnectionString("ServersDatabase")); 
         public MarketItemsController(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -42,10 +44,12 @@ namespace Marketplace.Server.Controllers
         [HttpPost("{id}/buy")]
         public bool TryBuyMarketItem(int id)
         {
-            decimal balance = 10;
+            decimal balance = serversConnection.UconomyGetBalance(User.Identity.Name);
             MarketItem item = connection.GetMarketItem(id);
             if (item != null && !item.IsSold && item.Price <= balance)
             {
+                serversConnection.UconomyPay(User.Identity.Name, item.Price * -1);
+                serversConnection.UconomyPay(item.SellerId, item.Price);
                 connection.BuyMarketItem(id, User.Identity.Name);
                 return true;
             }
@@ -74,6 +78,13 @@ namespace Marketplace.Server.Controllers
                 connection.ClaimMarketItem(id);                
             }
             return marketItem;
+        }
+
+        [Authorize]
+        [HttpGet("~/mybalance")]
+        public decimal GetMyBalance()
+        {
+            return serversConnection.UconomyGetBalance(User.Identity.Name);
         }
     }
 }

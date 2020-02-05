@@ -14,8 +14,6 @@ namespace Marketplace.Server
 {
     public class Startup
     {
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(options => { options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; })
@@ -36,7 +34,6 @@ namespace Marketplace.Server
 
         private async Task InitializePlayerAsync(CookieValidatePrincipalContext arg)
         {
-            Console.WriteLine("Initializing player now cool");
             string steamId = arg.Principal.FindFirst(ClaimTypes.NameIdentifier).Value.Substring(37);
             List<Claim> claims = new List<Claim>();
             claims.Add(new Claim(ClaimTypes.Name, steamId));
@@ -45,7 +42,6 @@ namespace Marketplace.Server
             arg.ReplacePrincipal(new ClaimsPrincipal(new ClaimsIdentity(claims, "DefaultAuth")));
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseResponseCompression();

@@ -51,8 +51,7 @@ namespace Marketplace.Client.Pages
                 } else
                 {
                     await Swal.FireAsync("Purchase Error", $"The item has already been bought or you can't afford it!", SweetAlertIcon.Error);
-                }
-                
+                }                
             } else
             {
                 await Swal.FireAsync("Purchase Error", $"You have to sign in to be able to buy!", SweetAlertIcon.Error);

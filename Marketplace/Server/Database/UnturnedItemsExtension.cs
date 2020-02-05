@@ -51,7 +51,7 @@ namespace Marketplace.Server.Database
         public static UnturnedItem GetUnturnedItem(this IDbConnection conn, int itemId)
         {
             string sql = "SELECT u.*, m.Id, m.ItemId, m.Metadata, m.Quality, m.Price, m.SellerId, m.CreateDate FROM dbo.UnturnedItems u " +
-                "LEFT JOIN dbo.MarketItems m ON m.ItemId = u.ItemId WHERE u.ItemId = @itemId;";
+                "LEFT JOIN dbo.MarketItems m ON m.ItemId = u.ItemId AND m.IsSold = 0 WHERE u.ItemId = @itemId;";
 
             UnturnedItem item = null;
             using (conn)

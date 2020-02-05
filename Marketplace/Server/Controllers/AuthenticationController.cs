@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Marketplace.Server.Database;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
 
 namespace Marketplace.Server.Controllers
 {
@@ -15,6 +18,15 @@ namespace Marketplace.Server.Controllers
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+
+        private MySqlConnection serversConnection => new MySqlConnection(_configuration.GetConnectionString("ServersDatabase"));
+
+        public AuthenticationController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         [HttpGet]        
         public UserInfo GetUser()
         {
@@ -24,6 +36,7 @@ namespace Marketplace.Server.Controllers
                 {
                     SteamId = User.Identity.Name,
                     Role = User.FindFirst(ClaimTypes.Role).Value,
+                    Balance = serversConnection.UconomyGetBalance(User.Identity.Name),
                     IsAuthenticated = true
                 };
             }

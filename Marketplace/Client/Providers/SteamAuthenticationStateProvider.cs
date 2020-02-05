@@ -29,7 +29,8 @@ namespace Marketplace.Client.Providers
                 steamIdentity = new ClaimsIdentity(new List<Claim>()
                 {
                     new Claim(ClaimTypes.Name, userInfo.SteamId),
-                    new Claim(ClaimTypes.Role, userInfo.Role)
+                    new Claim(ClaimTypes.Role, userInfo.Role),
+                    new Claim("Balance", userInfo.Balance.ToString())
                 }, "SteamAuth");
             }
             else
