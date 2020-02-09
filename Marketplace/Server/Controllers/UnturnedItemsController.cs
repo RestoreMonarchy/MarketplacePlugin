@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
+using System.Threading.Tasks;
 using Marketplace.Server.Database;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Mvc;
@@ -20,11 +22,17 @@ namespace Marketplace.Server.Controllers
         }
 
         [HttpGet]
-        public List<UnturnedItem> GetUnturnedItems([FromQuery] bool onlyIds = false)
+        public List<UnturnedItem> GetUnturnedItems([FromQuery] bool onlyIds = false, [FromQuery] bool withNoIcons = false)
         {
             if (onlyIds)
             {
-                return connection.GetUnturnedItemsIds();
+                if (withNoIcons)
+                {
+                    return connection.GetUnturnedItemsIdsNoIcon();  
+                } else
+                {
+                    return connection.GetUnturnedItemsIds();
+                }                
             }
             else
             {
@@ -38,16 +46,29 @@ namespace Marketplace.Server.Controllers
             return connection.GetUnturnedItem(itemId);
         }
 
+        [HttpPost("{itemId}/icon")]
+        public void AddIcon(ushort itemId, [FromBody] UnturnedItem item)
+        {
+            connection.AddItemIcon(itemId, item.Icon);
+        }
+
         [HttpGet("{itemId}/icon")]
         public IActionResult GetIcon(ushort itemId)
         {
-            return File(connection.GetItemIcon(itemId), "image/png");
+            byte[] data = connection.GetItemIcon(itemId);
+            if (data != null)
+            {
+                return File(data, "image/png");
+            } else
+            {
+                return File(new byte[0] { }, "image/png");
+            }            
         }
 
         [HttpPost]
         public void AddUnturnedItems([FromBody] UnturnedItem item)
         {
-            connection.AddUnturnedItems(item);
+            connection.AddUnturnedItem(item);
         }
     }
 }

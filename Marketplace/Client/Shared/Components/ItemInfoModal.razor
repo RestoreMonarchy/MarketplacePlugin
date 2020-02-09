@@ -1,33 +1,40 @@
 ﻿<div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        @if (Item != null && Listing != null)
+        @if (Listing != null && Listing.Item != null)
         {
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">@Item.ItemName</h5>
+                    <h5 class="modal-title">@Listing.Item.ItemName</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <div class="modal-body">
-                    @if (Item.ItemType == EItemType.GUN)
+                    @if (Listing.Item.ItemType == EItemType.GUN)
                     {
-                        <GunSummary GunId="Item.ItemId" Metadata="Listing.Metadata" />
+                        <GunSummary GunId="Listing.Item.ItemId" Metadata="Listing.Metadata" />
                     }
                     <h3>Listing Info</h3>
                     <ul class="list-unstyled">
                         <li><b>Seller:</b> @Listing.SellerId</li>
                         <li><b>Price:</b> $@Listing.Price</li>
                         <li><b>Quality:</b> @Listing.Quality</li>
-                        @if (Item.ItemType == EItemType.FUEL)
+                        @if (Listing.Item.ItemType == EItemType.FUEL)
                         {
-                            <li><b>Fuel:</b> @string.Concat(BitConverter.ToUInt16(Listing.Metadata, 0), "/", Item.Amount)</li>
+                            <li><b>Fuel:</b> @BitConverter.ToUInt16(Listing.Metadata, 0)</li>
+                        }
+                        @if (Listing.Item.ItemType == EItemType.MAGAZINE)
+                        {
+                            <li><b>Magazine:</b> @Listing.Amount/@Listing.Item.Amount</li>
                         }
                     </ul>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" @onclick="() => OnClickBuy.InvokeAsync(Listing)" class="btn btn-primary">Buy for $@Listing.Price</button>
+                    @if (IsBuy)
+                    {
+                        <button type="button" @onclick="() => OnClickBuy.InvokeAsync(Listing)" class="btn btn-primary">Buy for $@Listing.Price</button>
+                    }
                 </div>
             </div>
         }
@@ -36,10 +43,10 @@
 
 @code {
     [Parameter]
-    public UnturnedItem Item { get; set; }
-    [Parameter]
     public MarketItem Listing { get; set; }
 
     [Parameter]
     public EventCallback<MarketItem> OnClickBuy { get; set; }
+    [Parameter]
+    public bool IsBuy { get; set; }
 }

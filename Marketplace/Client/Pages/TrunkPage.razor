@@ -3,23 +3,29 @@
 @if (Items != null)
 {
     <div class="row">
-        <div class="col-6">
+        <div class="col-lg-6">
             <h3>Your Sellings</h3>
             <ul class="list-group">
                 @foreach (var item in sellingItems)
                 {
-                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> @item.Item.ItemName for $@item.Price</li>
+                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> <a href="javascript:void(0)" @onclick="() => ShowInfo(item)">@item.Item.ItemName</a></li>
                 }
             </ul>
         </div>
-        <div class="col-6">
+        <div class="col-lg-6">
             <h3>Your Shoppings</h3>
             <ul class="list-group">
-                @foreach (var item in boughtItems)
-                {
-                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> @item.Item.ItemName for $@item.Price</li>
+                @foreach (var item in boughtItems.OrderByDescending(x => x.SoldDate))
+                {   
+                    <li class="list-group-item d-flex w-100 justify-content-between">                        
+                        <span class="badge badge-pill badge-primary">@item.Id</span> 
+                        <a href="javascript:void(0)" @onclick="() => ShowInfo(item)">@item.Item.ItemName</a> 
+                        <small class="text-muted">@item.SoldDate</small>
+                    </li>
                 }
             </ul>
         </div>
     </div>
+
+    <ItemInfoModal Listing="infoItem" IsBuy="false" />
 }

@@ -1,7 +1,9 @@
-﻿using Marketplace.Shared;
+﻿using Marketplace.Client.Extensions;
+using Marketplace.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +19,8 @@ namespace Marketplace.Client.Pages
         public HttpClient HttpClient { get; set; }
         [Inject]
         public AuthenticationStateProvider stateProvider { get; set; }
+        [Inject]
+        public IJSRuntime JsRuntime { get; set; }
         private AuthenticationState state { get; set; }
 
         public List<MarketItem> Items { get; set; }
@@ -24,10 +28,18 @@ namespace Marketplace.Client.Pages
         private List<MarketItem> sellingItems => Items.Where(x => x.SellerId == state.User.Identity.Name && !x.IsSold).ToList();
         private List<MarketItem> boughtItems => Items.Where(x => x.BuyerId == state.User.Identity.Name && !x.IsClaimed).ToList();
 
+        private MarketItem infoItem;
+
         protected override async Task OnInitializedAsync()
         {
             state = await stateProvider.GetAuthenticationStateAsync();
             Items = await HttpClient.GetJsonAsync<List<MarketItem>>("api/marketitems/my");
+        }
+
+        public void ShowInfo(MarketItem marketItem)
+        {
+            infoItem = marketItem;
+            JsRuntime.ToggleModal("infoModal");
         }
     }
 }

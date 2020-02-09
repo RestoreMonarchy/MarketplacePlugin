@@ -30,8 +30,8 @@ namespace Marketplace.Server.Database
 
         public static int AddMarketItem(this IDbConnection conn, MarketItem marketItem)
         {
-            string sql = "INSERT INTO dbo.MarketItems (ItemId, Quality, Metadata, Price, SellerId) " +
-                "VALUES (@ItemId, @Quality, @Metadata, @Price, @SellerId);";
+            string sql = "INSERT INTO dbo.MarketItems (ItemId, Quality, Amount, Metadata, Price, SellerId) " +
+                "VALUES (@ItemId, @Quality, @Amount, @Metadata, @Price, @SellerId);";
             using (conn)
             {                
                 return conn.ExecuteScalar<int>(sql, marketItem);

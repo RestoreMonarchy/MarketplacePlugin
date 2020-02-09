@@ -6,7 +6,7 @@ namespace Marketplace.Shared
 {
     public class UnturnedItem
     {
-        public UnturnedItem(ushort itemId, string itemName, EItemType itemType, string itemDescription, byte amount, byte[] icon)
+        public UnturnedItem(ushort itemId, string itemName, EItemType itemType, string itemDescription, byte amount, byte[] icon = null)
         {
             ItemId = itemId;
             ItemName = itemName;
@@ -24,8 +24,8 @@ namespace Marketplace.Shared
         public string ItemDescription { get; set; }
         public byte Amount { get; set; }
         public byte[] Icon { get; set; }
-        public int MarketItemsCount { get; set; }
 
+        public int MarketItemsCount { get; set; }
         public List<MarketItem> MarketItems { get; set; }
     }
 }

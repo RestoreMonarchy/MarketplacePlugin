@@ -10,11 +10,15 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace UnturnedMarketplacePlugin.Extensions
 {
     public static class MarketplacePluginExtensions
     {
+
+        // Main thread method
         public static void LoadAssets(this MarketplacePlugin pluginInstance)
         {            
             List<ushort> existingItems = pluginInstance.GetExistingItems();
@@ -23,38 +27,49 @@ namespace UnturnedMarketplacePlugin.Extensions
             {
                 existingItems = pluginInstance.GetExistingItems();
                 num++;
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Retrying to download existing items [{num}/5]"));
+                Logger.LogWarning($"Retrying to download existing items [{num}/5]");
                 if (num == 5)
                 {
-                    TaskDispatcher.QueueOnMainThread(() => 
-                    {
-                        Logger.LogWarning($"Failed to connect to web API [{pluginInstance.config.ApiUrl}]. Unloading plugin...");
-                        pluginInstance.UnloadPlugin();
-                    });
-                    
+                    Logger.LogWarning($"Failed to connect to web API [{pluginInstance.config.ApiUrl}]. Unloading plugin...");
+                    pluginInstance.UnloadPlugin();
                     return;
                 }
             }
 
             Logger.Log($"{existingItems.Count} assets are already existing", ConsoleColor.Yellow);
-            int num1 = 0;
+
             foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
             {
                 if (!string.IsNullOrEmpty(asset.itemName) && !asset.itemName.Equals("#NAME")
                     && !existingItems.Contains(asset.id))
                 {
-                    pluginInstance.UploadUnturnedItem(new UnturnedItem(asset.id, asset.itemName, 
-                        (Marketplace.Shared.EItemType)asset.type, asset.itemDescription, asset.amount, new byte[0] { }));
-                    num1++;
+                    pluginInstance.UploadUnturnedItem(new UnturnedItem(asset.id, asset.itemName, (Marketplace.Shared.EItemType)asset.type, asset.itemDescription, asset.amount));
                 }
             }
-            Logger.Log($"Successfully uploaded {num1} new assets!", ConsoleColor.Yellow);
+
+            List<ushort> noIconItems = pluginInstance.GetItemsWithNoIcons();
+            Logger.Log($"{noIconItems.Count} items do not have icons", ConsoleColor.Yellow);
+
+            int num1 = 0;
+            foreach (ushort itemId in noIconItems)
+            {
+                ItemAsset asset = Assets.find(EAssetType.ITEM, itemId) as ItemAsset;
+                var ready = new ItemIconReady((icon) =>
+                {
+                    pluginInstance.UploadUnturnedItemIcon(asset.id, icon.EncodeToPNG());
+                });
+
+                ItemTool.getIcon(asset.id, 0, asset.quality, asset.getState(), asset, null, string.Empty, string.Empty, asset.size_x * pluginInstance.config.IconSize, asset.size_y * pluginInstance.config.IconSize, false, true, ready);
+                num1++;
+            }
+            Logger.Log($"{num1} new item icons are being uploaded to {pluginInstance.config.ApiUrl}!", ConsoleColor.Yellow);
         }
 
+        // Main Thread
         public static void UploadUnturnedItem(this MarketplacePlugin pluginInstance, UnturnedItem item)
         {
             if (pluginInstance.config.Debug)
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Uploading {item.ItemName} [{item.ItemId}]..."));
+                Logger.LogWarning($"Uploading {item.ItemName} [{item.ItemId}]...");
 
             string content = JsonConvert.SerializeObject(item);
             try
@@ -67,13 +82,34 @@ namespace UnturnedMarketplacePlugin.Extensions
             }
             catch (WebException e)
             {
-                if (e.Status == WebExceptionStatus.Timeout)
+                Logger.LogException(e);
+            }
+
+            Logger.Log($"Successfully uploaded {item.ItemName} [{item.ItemId}]!", ConsoleColor.Yellow);
+        }
+
+        // Main Thread  
+        public static void UploadUnturnedItemIcon(this MarketplacePlugin pluginInstance, ushort itemId, byte[] icon)
+        {
+            if (pluginInstance.config.Debug)
+                Logger.LogWarning($"Uploading icon for {itemId}...");
+
+            string content = JsonConvert.SerializeObject(new UnturnedItem() { Icon = icon });
+
+            try
+            {
+                using (pluginInstance.WebClient)
                 {
-                    TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Web API [{pluginInstance.config.ApiUrl}] timeout. Retrying in {pluginInstance.config.TimeoutRetryTimeMiliseconds} miliseconds..."));
-                    Task.Delay(pluginInstance.config.TimeoutRetryTimeMiliseconds);
-                    pluginInstance.UploadUnturnedItem(item);
+                    pluginInstance.WebClient.Headers[HttpRequestHeader.ContentType] = "application/json";
+                    pluginInstance.WebClient.UploadString(pluginInstance.config.ApiUrl + $"/unturneditems/{itemId}/icon", content);
                 }
             }
+            catch (WebException e)
+            {
+                Logger.LogException(e);
+            }
+
+            Logger.Log($"Successfully uploaded icon for item {itemId}!", ConsoleColor.Yellow);
         }
 
         public static bool TryUploadMarketItem(this MarketplacePlugin pluginInstance, MarketItem marketItem)
@@ -139,7 +175,7 @@ namespace UnturnedMarketplacePlugin.Extensions
                 }
             } catch (WebException e)
             {
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Failed to download existing items due to {e.Status}!"));
+                Logger.LogWarning($"Failed to download existing items due to {e.Status}!");
             }
             
 
@@ -155,6 +191,36 @@ namespace UnturnedMarketplacePlugin.Extensions
             }
 
             return items == null ? null : items.Select(x => (ushort)x.ItemId).ToList();
-        } 
+        }
+
+        public static List<ushort> GetItemsWithNoIcons(this MarketplacePlugin pluginInstance)
+        {
+            string content = string.Empty;
+            try
+            {
+                using (pluginInstance.WebClient)
+                {
+                    content = pluginInstance.WebClient.DownloadString(pluginInstance.config.ApiUrl + "/unturneditems?onlyIds=true&withNoIcons=true");
+                }
+            }
+            catch (WebException e)
+            {
+                Logger.LogWarning($"Failed to download items with no icon due to {e.Status}!");
+            }
+
+
+            List<UnturnedItem> items = null;
+
+            try
+            {
+                items = JsonConvert.DeserializeObject<List<UnturnedItem>>(content);
+            }
+            catch (Exception e)
+            {
+                Logger.LogException(e);
+            }
+
+            return items == null ? null : items.Select(x => (ushort)x.ItemId).ToList();
+        }
     }
 }

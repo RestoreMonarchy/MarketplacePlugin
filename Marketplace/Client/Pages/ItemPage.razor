@@ -4,7 +4,7 @@
 {
     <div class="row justify-content-center">
         <div class="col-lg-5 text-center">
-            <img class="card-img-top" src="/api/unturneditems/@ItemId/icon" style="max-width: 400px;">
+            <img src="/api/unturneditems/@ItemId/icon" style="max-width: 400px;">
             <h2 class="font-weight-bold">@Item.ItemName</h2>
             <p>@Item.ItemDescription</p>
         </div>
@@ -27,5 +27,5 @@
         </div>
     </div>
 
-    <ItemInfoModal Item="Item" Listing="listing" OnClickBuy="BuyListing" />
+    <ItemInfoModal Listing="listing" OnClickBuy="BuyListing" IsBuy="true" />
 }

@@ -36,6 +36,7 @@ namespace Marketplace.Client.Pages
         public void PreviewListing(MarketItem listing)
         {
             this.listing = listing;
+            listing.Item = Item;
             JsRuntime.ToggleModal("infoModal");
         }
 
@@ -47,7 +48,7 @@ namespace Marketplace.Client.Pages
                 if (await HttpClient.PostJsonAsync<bool>($"api/marketitems/{listing.Id}/buy", null))
                 {
                     Item.MarketItems.Remove(listing);
-                    await Swal.FireAsync("Purchase Success", $"You successfully bought {Item.ItemName} ({listing.ItemId}) for ${listing.Price}!", SweetAlertIcon.Success);
+                    await Swal.FireAsync("Purchase Success", $"You successfully bought {Item.ItemName}({listing.ItemId}) for ${listing.Price}!", SweetAlertIcon.Success);
                 } else
                 {
                     await Swal.FireAsync("Purchase Error", $"The item has already been bought or you can't afford it!", SweetAlertIcon.Error);

@@ -7,18 +7,20 @@ namespace Marketplace.Shared
     public class MarketItem
     {
         public MarketItem() { }
-        public MarketItem(ushort itemId, decimal price, byte quality, byte[] state, string sellerId)
+        public MarketItem(ushort itemId, decimal price, byte quality, byte amount, byte[] state, string sellerId)
         {
             ItemId = itemId;
-            Quality = quality;
-            Metadata = state;
             Price = price;
+            Quality = quality;
+            Amount = amount; 
+            Metadata = state;            
             SellerId = sellerId;
         }
 
         public int Id { get; set; }
         public int ItemId { get; set; }
         public byte Quality { get; set; }
+        public byte Amount { get; set; }
         public byte[] Metadata { get; set; }
         public decimal Price { get; set; }
         public string SellerId { get; set; }

@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Logger = Rocket.Core.Logging.Logger;
 using Marketplace.Shared;
 using UnturnedMarketplacePlugin.Extensions;
+using System.Threading;
+using Rocket.Core.Utils;
 
 namespace UnturnedMarketplacePlugin.Commands
 {
@@ -50,19 +52,36 @@ namespace UnturnedMarketplacePlugin.Commands
             player.Inventory.updateItems(PlayerInventory.STORAGE, interactableStorage.items);
             player.Inventory.sendStorage();
 
-
             InventoryAdded inventoryAdded = null;
             InventoryResized inventoryResized = null;
 
             inventoryAdded = delegate (byte page, byte index, ItemJar jar)
             {
                 if (page == PlayerInventory.STORAGE && player.Inventory.storage == interactableStorage)
-                {
-                    var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.state, player.Id);
-                    pluginInstance.TryUploadMarketItem(item);
+                {                    
+                    var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id);
+                    ThreadPool.QueueUserWorkItem((a) => 
+                    {
+                        ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
+                        if (pluginInstance.TryUploadMarketItem(item))
+                        {
+                            TaskDispatcher.QueueOnMainThread(() =>
+                            {
+                                UnturnedChat.Say(player, $"Successfully put your {asset.itemName} on marketplace!", Color.cyan);
+                            });
+                        } else
+                        {
+                            TaskDispatcher.QueueOnMainThread(() => 
+                            {
+                                player.GiveItem(jar.item);
+                                UnturnedChat.Say(player, $"Your {asset.itemName} returned. Try again later.");
+                            });
+                        }
+                    });
+                    
                     interactableStorage.items.clear();                    
                     player.Inventory.closeStorageAndNotifyClient();
-                    UnturnedChat.Say(player, $"Successfully put your {item.ItemId} weapon on marketplace!", Color.cyan);
+                    Object.Destroy(interactableStorage);
 
                     player.Inventory.onInventoryAdded -= inventoryAdded;
                     player.Inventory.onInventoryResized -= inventoryResized;

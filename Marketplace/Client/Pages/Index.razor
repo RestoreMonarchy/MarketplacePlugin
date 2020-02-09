@@ -6,16 +6,23 @@
     </div>
     <input type="text" @bind-value="@searchString" @bind-value:event="oninput" class="form-control" placeholder="ID or Name">
 </div>
-<ul class="list-group">
-    @if (items != null)
-    {
-        foreach (var item in searchItems.Take(20))
+
+@if (items != null)
+{
+    <ul class="list-group">
+        @foreach (var item in searchItems.Take(20))
         {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <img src="/api/unturneditems/@item.ItemId/icon" style="width: 40px; height: 25px;">
-                <a href="/items/@item.ItemId">@item.ItemName</a>
-                <span class="badge badge-primary badge-pill">@item.MarketItemsCount</span>
-            </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <img src="/api/unturneditems/@item.ItemId/icon" style="width: 40px; height: 25px;">
+            <a href="/items/@item.ItemId">@item.ItemName</a>
+            <span class="badge badge-primary badge-pill">@item.MarketItemsCount</span>
+        </li>
         }
-    }    
-</ul>
+    </ul>
+}
+else
+{
+    <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+    </div>
+}

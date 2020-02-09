@@ -10,19 +10,28 @@ namespace Marketplace.Server.Database
 {
     public static class UnturnedItemsExtension
     {
-        public static void AddUnturnedItems(this IDbConnection conn, UnturnedItem item)
+        public static void AddUnturnedItem(this IDbConnection conn, UnturnedItem item)
         {
-            string sql = "INSERT INTO dbo.UnturnedItems (ItemId, ItemName, ItemType, ItemDescription, Amount, Icon) " +
-                "VALUES (@ItemId, @ItemName, @ItemType, @ItemDescription, @Amount, @Icon);";
+            string sql = "INSERT INTO dbo.UnturnedItems (ItemId, ItemName, ItemType, ItemDescription, Amount) " +
+                "VALUES (@ItemId, @ItemName, @ItemType, @ItemDescription, @Amount);";
             using (conn)
             {
                 conn.Execute(sql, item);
             }
         }
 
+        public static void AddItemIcon(this IDbConnection conn, ushort itemId, byte[] iconData)
+        {
+            string sql = "UPDATE dbo.UnturnedItems SET Icon = @iconData WHERE ItemId = @itemId;";
+            using (conn)
+            {
+                conn.Execute(sql, new { iconData, itemId = (int)itemId });
+            }
+        }
+
         public static List<UnturnedItem> GetUnturnedItems(this IDbConnection conn)
         {
-            string sql = "SELECT ItemId, ItemName, ItemType, ItemDescription, Amount, Icon, " +
+            string sql = "SELECT ItemId, ItemName, ItemType, ItemDescription, Amount, " +
                 "(SELECT COUNT(*) FROM dbo.MarketItems m WHERE m.ItemId = u.ItemId AND m.IsSold = 0) MarketItemsCount FROM dbo.UnturnedItems u;";
             using (conn)
             {
@@ -42,6 +51,15 @@ namespace Marketplace.Server.Database
         public static List<UnturnedItem> GetUnturnedItemsIds(this IDbConnection conn)
         {
             string sql = "SELECT ItemId FROM dbo.UnturnedItems;";
+            using (conn)
+            {
+                return conn.Query<UnturnedItem>(sql).ToList();
+            }
+        }
+
+        public static List<UnturnedItem> GetUnturnedItemsIdsNoIcon(this IDbConnection conn)
+        {
+            string sql = "SELECT ItemId FROM dbo.UnturnedItems WHERE Icon IS NULL;";
             using (conn)
             {
                 return conn.Query<UnturnedItem>(sql).ToList();
