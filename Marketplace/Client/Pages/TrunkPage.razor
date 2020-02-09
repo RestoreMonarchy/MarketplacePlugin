@@ -6,10 +6,22 @@
         <div class="col-lg-6">
             <h3>Your Sellings</h3>
             <ul class="list-group">
-                @foreach (var item in sellingItems)
-                {
-                    <li class="list-group-item"><span class="badge badge-pill badge-primary">@item.Id</span> <a href="javascript:void(0)" @onclick="() => ShowInfo(item)">@item.Item.ItemName</a></li>
-                }
+                <ul class="list-group">
+                    @foreach (var item in sellingItems)
+                    {
+                        <li class="list-group-item dropdown">
+                            <span class="badge badge-pill badge-primary">@item.Id</span>  <span class="font-weight-bold">@item.Item.ItemName</span> for $@item.Price
+                            <button class="btn btn-outline-primary btn-sm float-right" type="button" data-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="javascript:void(0)" @onclick="() => ChangePrice(item)">Change Price</a>
+                                <a class="dropdown-item" href="javascript:void(0)" @onclick="() => ShowInfo(item)">Info</a>
+                                <a class="dropdown-item disabled" href="javascript:void(0)">@item.CreateDate</a>
+                            </div>
+                        </li>
+                    }
+                </ul>
             </ul>
         </div>
         <div class="col-lg-6">
@@ -17,15 +29,22 @@
             <ul class="list-group">
                 @foreach (var item in boughtItems.OrderByDescending(x => x.SoldDate))
                 {   
-                    <li class="list-group-item d-flex w-100 justify-content-between">                        
-                        <span class="badge badge-pill badge-primary">@item.Id</span> 
-                        <a href="javascript:void(0)" @onclick="() => ShowInfo(item)">@item.Item.ItemName</a> 
-                        <small class="text-muted">@item.SoldDate</small>
+                    <li class="list-group-item dropdown">                        
+                        <span class="badge badge-pill badge-primary">@item.Id</span>  <span class="font-weight-bold">@item.Item.ItemName</span>
+                        <button class="btn btn-outline-primary btn-sm float-right" type="button" data-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a class="dropdown-item" href="javascript:void(0)" @onclick="() => ShowClaim(item)">Claim</a>
+                            <a class="dropdown-item" href="javascript:void(0)" @onclick="() => ShowInfo(item)">Info</a>
+                            <a class="dropdown-item disabled" href="javascript:void(0)">@item.SoldDate</a>
+                        </div>
                     </li>
                 }
             </ul>
         </div>
     </div>
 
-    <ItemInfoModal Listing="infoItem" IsBuy="false" />
+    <ItemInfoModal Listing="infoItem" IsBuy="false">
+    </ItemInfoModal>
 }

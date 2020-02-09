@@ -24,6 +24,7 @@ namespace Marketplace.Shared
         public byte[] Metadata { get; set; }
         public decimal Price { get; set; }
         public string SellerId { get; set; }
+        public DateTime CreateDate { get; set; }
         public bool IsSold { get; set; }
         public string BuyerId { get; set; }
         public DateTime? SoldDate { get; set; }

@@ -28,6 +28,7 @@
                             <li><b>Magazine:</b> @Listing.Amount/@Listing.Item.Amount</li>
                         }
                     </ul>
+                    @ChildContent
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -49,4 +50,6 @@
     public EventCallback<MarketItem> OnClickBuy { get; set; }
     [Parameter]
     public bool IsBuy { get; set; }
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
 }

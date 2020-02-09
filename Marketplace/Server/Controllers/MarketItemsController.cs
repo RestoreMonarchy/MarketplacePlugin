@@ -15,7 +15,7 @@ namespace Marketplace.Server.Controllers
     {
         private readonly IConfiguration _configuration;
         private SqlConnection connection => new SqlConnection(_configuration.GetConnectionString("WebDatabase"));
-        private MySqlConnection serversConnection => new MySqlConnection(_configuration.GetConnectionString("ServersDatabase")); 
+        private MySqlConnection serversConnection => new MySqlConnection(_configuration.GetConnectionString("ServersDatabase"));
         public MarketItemsController(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -32,6 +32,17 @@ namespace Marketplace.Server.Controllers
         public MarketItem GetMarketItem(int id)
         {
             return connection.GetMarketItem(id);
+        }
+
+        [Authorize]
+        [HttpPut("{id}")]
+        public void ChangePriceMarketItem(int id, [FromQuery] decimal price)
+        {
+            MarketItem marketItem = connection.GetMarketItem(id);
+            if (marketItem.SellerId == User.Identity.Name && !marketItem.IsSold)
+            {
+                connection.ChangePriceMarketItem(id, price);
+            }            
         }
 
         [HttpPost]

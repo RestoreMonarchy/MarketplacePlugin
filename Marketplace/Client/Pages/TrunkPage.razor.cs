@@ -1,4 +1,5 @@
-﻿using Marketplace.Client.Extensions;
+﻿using CurrieTechnologies.Razor.SweetAlert2;
+using Marketplace.Client.Extensions;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
@@ -21,6 +22,8 @@ namespace Marketplace.Client.Pages
         public AuthenticationStateProvider stateProvider { get; set; }
         [Inject]
         public IJSRuntime JsRuntime { get; set; }
+        [Inject]
+        public SweetAlertService Swal { get; set; }
         private AuthenticationState state { get; set; }
 
         public List<MarketItem> Items { get; set; }
@@ -40,6 +43,39 @@ namespace Marketplace.Client.Pages
         {
             infoItem = marketItem;
             JsRuntime.ToggleModal("infoModal");
+        }
+
+        public async Task ShowClaim(MarketItem item)
+        {
+            await Swal.FireAsync("Claim Information", $"To claim your {item.Item.ItemName}, use in-game: <code>/claim {item.Id}</code>", SweetAlertIcon.Info);
+        }
+
+        public async Task ChangePrice(MarketItem item)
+        {
+
+            await Swal.FireAsync(new SweetAlertOptions
+            {
+                Title = $"Change Price",
+                Text = $"Input new price for listing {item.Id} [{item.Item.ItemName}]",
+                Icon = SweetAlertIcon.Warning,
+                Input = SweetAlertInputType.Number,
+                ShowCancelButton = true,
+                ConfirmButtonText = "Submit",
+                ShowLoaderOnConfirm = true,
+            }).ContinueWith(async (swalTask) => 
+            {
+                var result = swalTask.Result;
+                if (!string.IsNullOrEmpty(result.Value) && decimal.TryParse(result.Value, out decimal price))
+                {
+                    item.Price = price;
+                    await HttpClient.PutAsync($"api/marketitems/{item.Id}?price={price}", null);
+                    await Swal.FireAsync("Price Changed", $"Successfully changed the price of listing {item.Id} [{item.Item.ItemName}] to {item.Price}!", SweetAlertIcon.Success);
+                } else
+                {
+                    await Swal.FireAsync("Canceled", $"Changing price for listing {item.Id} canceled.", SweetAlertIcon.Error);
+                }
+            });
+            
         }
     }
 }

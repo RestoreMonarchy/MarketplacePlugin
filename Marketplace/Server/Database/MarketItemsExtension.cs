@@ -47,6 +47,15 @@ namespace Marketplace.Server.Database
             }
         }
 
+        public static void ChangePriceMarketItem(this IDbConnection conn, int id, decimal price)
+        {
+            string sql = "UPDATE dbo.MarketItems SET Price = @price WHERE Id = @id;";
+            using (conn)
+            {
+                conn.Execute(sql, new { id, price });
+            }
+        }
+
         public static List<MarketItem> GetPlayerMarketItems(this IDbConnection conn, string playerId)
         {
             string sql = "SELECT m.*, u.ItemName, u.ItemType, u.ItemDescription, u.Amount, u.Icon FROM dbo.MarketItems m " +
