@@ -4,12 +4,8 @@ using Rocket.Core.Utils;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using UnturnedMarketplacePlugin.Extensions;
 
 namespace UnturnedMarketplacePlugin.Commands
@@ -26,7 +22,7 @@ namespace UnturnedMarketplacePlugin.Commands
 
         public string Syntax => "<id>";
 
-        public List<string> Aliases => new List<string>();
+        public List<string> Aliases => new List<string>() { "marketclaim" };
 
         public List<string> Permissions => new List<string>();
 
@@ -34,7 +30,7 @@ namespace UnturnedMarketplacePlugin.Commands
         {
             if (command.Length < 1 || !int.TryParse(command[0], out int id))
             {
-                UnturnedChat.Say(caller, "Invalid Syntax");
+                UnturnedChat.Say(caller, pluginInstance.Translate("ClaimInvalid"), pluginInstance.MessageColor);
                 return;
             }
             UnturnedPlayer player = (UnturnedPlayer)caller;
@@ -46,14 +42,18 @@ namespace UnturnedMarketplacePlugin.Commands
                 MarketItem item = pluginInstance.ClaimMarketItem(id, player.Id);
                 if (item == null || item.BuyerId != player.Id || item.IsClaimed)
                 {
-                    TaskDispatcher.QueueOnMainThread(() => UnturnedChat.Say(caller, "You already claimed this item or you are not owner!"));
+                    TaskDispatcher.QueueOnMainThread(() => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor));
                     return;
                 }
 
                 TaskDispatcher.QueueOnMainThread(() => 
-                {                    
-                    player.GiveItem(new Item((ushort)item.ItemId, 1, item.Quality, item.Metadata));
-                    UnturnedChat.Say(caller, $"You successfully claimed your order {id}!");
+                {
+                    var asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
+                    if (asset != null)
+                    {
+                        player.Inventory.forceAddItem(new Item(asset.id, item.Amount, item.Quality, item.Metadata), true);
+                        UnturnedChat.Say(caller, pluginInstance.Translate("ClaimSuccess", asset.itemName, id), pluginInstance.MessageColor);
+                    }
                 });
             }
         }

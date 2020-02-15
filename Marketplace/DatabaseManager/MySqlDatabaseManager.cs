@@ -19,12 +19,12 @@ namespace DatabaseManager
 
         void InitializeTables()
         {
-            string sql = "CREATE TABLE IF NOT EXISTS unturned.UnturnedItems (ItemId INT NOT NULL PRIMARY KEY, ItemName TEXT NOT NULL, ItemType VARCHAR(255) NOT NULL, " +
+            string sql = "CREATE TABLE IF NOT EXISTS UnturnedItems (ItemId INT NOT NULL PRIMARY KEY, ItemName TEXT NOT NULL, ItemType VARCHAR(255) NOT NULL, " +
                 "ItemDescription TEXT NOT NULL, Amount TINYINT NOT NULL DEFAULT 1, Icon MEDIUMBLOB NULL);";
-            string sql1 = "CREATE TABLE IF NOT EXISTS unturned.MarketItems (Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ItemId INT NOT NULL, Metadata BLOB NOT NULL, " +
-                "Quality TINYINT NOT NULL, Amount TINYINT NOT NULL, Price DECIMAL(9, 2) NOT NULL, SellerId VARCHAR(255) NOT NULL, CreateDate DATETIME NOT NULL DEFAULT NOW(), " +
-                "IsSold BIT NOT NULL DEFAULT 0, BuyerId VARCHAR(255) NULL, SoldDate DATETIME NULL, IsClaimed BIT NOT NULL DEFAULT 0, ClaimDate DATETIME NULL, " +
-                "CONSTRAINT FK_MarketItems_ItemID FOREIGN KEY(ItemId) REFERENCES UnturnedItems(ItemId));";
+            string sql1 = "CREATE TABLE IF NOT EXISTS MarketItems (Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ItemId INT NOT NULL, Metadata BLOB NOT NULL, " +
+                "Quality TINYINT(255) UNSIGNED NOT NULL, Amount TINYINT(255) UNSIGNED NOT NULL, Price DECIMAL(9, 2) NOT NULL, SellerId VARCHAR(255) NOT NULL, " +
+                "CreateDate DATETIME NOT NULL DEFAULT NOW(), IsSold BIT NOT NULL DEFAULT 0, BuyerId VARCHAR(255) NULL, SoldDate DATETIME NULL, IsClaimed BIT NOT NULL DEFAULT 0, " +
+                "ClaimDate DATETIME NULL, CONSTRAINT FK_MarketItems_ItemID FOREIGN KEY(ItemId) REFERENCES UnturnedItems(ItemId));";
 
             using (connection)
             {
@@ -64,7 +64,7 @@ namespace DatabaseManager
 
         public void BuyMarketItem(int id, string buyerId)
         {
-            string sql = "UPDATE MarketItems SET IsSold = 1, BuyerId = @buyerId, SoldDate = SYSDATETIME() WHERE Id = @id;";
+            string sql = "UPDATE MarketItems SET IsSold = 1, BuyerId = @buyerId, SoldDate = NOW() WHERE Id = @id;";
             using (connection)
             {
                 connection.Execute(sql, new { id, buyerId });
@@ -82,7 +82,7 @@ namespace DatabaseManager
 
         public void ClaimMarketItem(int id)
         {
-            string sql = "UPDATE MarketItems SET IsClaimed = 1, ClaimDate = SYSDATETIME() WHERE Id = @id;";
+            string sql = "UPDATE MarketItems SET IsClaimed = 1, ClaimDate = NOW() WHERE Id = @id;";
 
             using (connection)
             {

@@ -1,32 +1,22 @@
-﻿using Rocket.Core.Plugins;
+﻿using Rocket.API.Collections;
+using Rocket.Core.Plugins;
 using System;
-using System.Net;
-using Logger = Rocket.Core.Logging.Logger;
 using System.Reflection;
-using System.Threading;
 using UnturnedMarketplacePlugin.Extensions;
-using SDG.Unturned;
-using System.IO;
-using System.Threading.Tasks;
-using UnityEngine;
-using Rocket.Core.Commands;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace UnturnedMarketplacePlugin
 {
     public class MarketplacePlugin : RocketPlugin<MarketplaceConfiguration>
     {
         public static MarketplacePlugin Instance { get; private set; }
-
-        public WebClient WebClient { get; private set; }
-
         public MarketplaceConfiguration config => Configuration.Instance;
-
+        public UnityEngine.Color MessageColor { get; set; }
 
         protected override void Load()
         {
             Instance = this;
-            WebClient = new WebClient();
-            WebClient.Headers["x-api-key"] = config.ApiKey;
+            MessageColor = Rocket.Unturned.Chat.UnturnedChat.GetColorFromName(config.MessageColor, UnityEngine.Color.green);
             this.LoadAssets();
 
 			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
@@ -36,6 +26,16 @@ namespace UnturnedMarketplacePlugin
         {
             Logger.Log($"{Name} has been unloaded!", ConsoleColor.Yellow);
         }
+
+        public override TranslationList DefaultTranslations => new TranslationList() 
+        {
+            { "ClaimInvalid", "Invalid usage. Use: /claim <orderId>" },
+            { "ClaimAlready", "You have already claimed this order or it's not yours!" },
+            { "ClaimSuccess", "Successfully claimed your {0} of order {1}!" },
+            { "SellInvalid", "Invalid usage. Use: /claim <price>" },
+            { "SellSuccess", "Successfully put your {0} on sale for {1}!" },
+            { "SellReturned", "Your {0} returned. Try again later." }
+        };
     }
 }
 

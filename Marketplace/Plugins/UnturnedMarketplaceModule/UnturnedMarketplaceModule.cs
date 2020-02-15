@@ -1,11 +1,7 @@
-﻿using SDG.Framework.Modules;
-using SDG.Unturned;
-using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using SDG.Framework.Modules;
+using System;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UnturnedMarketplaceModule
@@ -14,19 +10,24 @@ namespace UnturnedMarketplaceModule
     {
         public static GameObject gameObject;
         public static UnturnedMarketplaceModule Instance { get; private set; }
+        public string path = Path.Combine(Directory.GetCurrentDirectory(), "marketplace-config.json");
+        public MarketplaceModuleConfig Config { get; set; }
         public void initialize()
         {
             Instance = this;
-            Debug.Log("Initialized is called right");
+
+            Config = new MarketplaceModuleConfig();
+            Config.LoadDefaults();
+            Config.Reload(this);
 
             gameObject = new GameObject("UnturnedMarketplaceManager");
-            Object.DontDestroyOnLoad(gameObject);
+            UnityEngine.Object.DontDestroyOnLoad(gameObject);
             gameObject.AddComponent<Manager>();  
         }
 
         public void shutdown()
         {
-
+            UnityEngine.Object.Destroy(gameObject.GetComponent<Manager>());
         }
     }
 }

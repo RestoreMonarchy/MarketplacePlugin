@@ -5,18 +5,18 @@ namespace UnturnedMarketplacePlugin
 {
     public class MarketplaceConfiguration : IRocketPluginConfiguration
     {
+        public string MessageColor { get; set; }
         public string ApiUrl { get; set; }
         public string ApiKey { get; set; }
         public int TimeoutMiliseconds { get; set; }
         public bool Debug { get; set; }
-        public int IconSize { get; set; }
         public void LoadDefaults()
         {
-            ApiUrl = "http://localhost:5000/api";
-            ApiKey = Guid.NewGuid().ToString();
+            MessageColor = "yellow";
+            ApiUrl = "http://localhost:5046/api";
+            ApiKey = "f215ab5d-e761-415e-b2de-f97db5069977";
             TimeoutMiliseconds = 10000;
             Debug = true;
-            IconSize = 100;
         }
     }
 }
