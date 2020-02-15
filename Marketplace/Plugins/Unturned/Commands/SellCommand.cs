@@ -73,7 +73,7 @@ namespace UnturnedMarketplacePlugin.Commands
                         {
                             TaskDispatcher.QueueOnMainThread(() => 
                             {
-                                player.GiveItem(jar.item);
+                                player.Inventory.forceAddItem(jar.item, true);
                                 UnturnedChat.Say(player, $"Your {asset.itemName} returned. Try again later.");
                             });
                         }

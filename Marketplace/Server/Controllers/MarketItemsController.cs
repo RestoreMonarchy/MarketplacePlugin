@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Data.SqlClient;
+using ApiKeyAuthentication;
+using DatabaseManager;
 using Marketplace.Server.Database;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Authorization;
@@ -14,41 +15,44 @@ namespace Marketplace.Server.Controllers
     public class MarketItemsController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private SqlConnection connection => new SqlConnection(_configuration.GetConnectionString("WebDatabase"));
+        private readonly IDatabaseManager _databaseManager;
         private MySqlConnection serversConnection => new MySqlConnection(_configuration.GetConnectionString("ServersDatabase"));
-        public MarketItemsController(IConfiguration configuration)
+
+        public MarketItemsController(IConfiguration configuration, IDatabaseManager databaseManager)
         {
             _configuration = configuration;
+            _databaseManager = databaseManager;
         }
 
         [HttpGet]
         public List<MarketItem> GetMarketItems()
         {
-            var marketitems = connection.GetMarketItems();
+            var marketitems = _databaseManager.GetMarketItems();
             return marketitems;
         }
 
         [HttpGet("{id}")]
         public MarketItem GetMarketItem(int id)
         {
-            return connection.GetMarketItem(id);
+            return _databaseManager.GetMarketItem(id);
         }
 
         [Authorize]
         [HttpPut("{id}")]
         public void ChangePriceMarketItem(int id, [FromQuery] decimal price)
         {
-            MarketItem marketItem = connection.GetMarketItem(id);
+            MarketItem marketItem = _databaseManager.GetMarketItem(id);
             if (marketItem.SellerId == User.Identity.Name && !marketItem.IsSold)
             {
-                connection.ChangePriceMarketItem(id, price);
+                _databaseManager.ChangePriceMarketItem(id, price);
             }            
         }
 
+        [ApiKeyAuth]
         [HttpPost]
         public int PostMarketItem([FromBody] MarketItem marketItem)
         {
-            return connection.AddMarketItem(marketItem);
+            return _databaseManager.AddMarketItem(marketItem);
         }
 
         [Authorize]
@@ -56,12 +60,12 @@ namespace Marketplace.Server.Controllers
         public bool TryBuyMarketItem(int id)
         {
             decimal balance = serversConnection.UconomyGetBalance(User.Identity.Name);
-            MarketItem item = connection.GetMarketItem(id);
-            if (item != null && !item.IsSold && item.Price <= balance)
+            MarketItem item = _databaseManager.GetMarketItem(id);
+            if (item != null && !item.IsSold && item.Price <= balance && item.SellerId != User.Identity.Name)
             {
                 serversConnection.UconomyPay(User.Identity.Name, item.Price * -1);
                 serversConnection.UconomyPay(item.SellerId, item.Price);
-                connection.BuyMarketItem(id, User.Identity.Name);
+                _databaseManager.BuyMarketItem(id, User.Identity.Name);
                 return true;
             }
             return false;
@@ -71,13 +75,14 @@ namespace Marketplace.Server.Controllers
         [HttpGet("my")]
         public List<MarketItem> GetMyMarketItems()
         {
-            return connection.GetPlayerMarketItems(User.Identity.Name);
+            return _databaseManager.GetPlayerMarketItems(User.Identity.Name);
         }
 
+        [ApiKeyAuth]
         [HttpGet("{id}/claim")]
         public MarketItem ClaimMarketItem(int id, [FromQuery] string playerId)
         {
-            MarketItem marketItem = connection.GetMarketItem(id);
+            MarketItem marketItem = _databaseManager.GetMarketItem(id);
             
             if (marketItem == null)
             {
@@ -86,7 +91,7 @@ namespace Marketplace.Server.Controllers
 
             if (playerId == marketItem.BuyerId && !marketItem.IsClaimed)
             {
-                connection.ClaimMarketItem(id);                
+                _databaseManager.ClaimMarketItem(id);                
             }
             return marketItem;
         }

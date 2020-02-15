@@ -17,6 +17,7 @@ namespace Marketplace.Server
                     .AddCommandLine(args)
                     .Build())
                 .UseStartup<Startup>()
+                .UseUrls("http://localhost:5046/")
                 .Build();
     }
 }

@@ -21,53 +21,16 @@ namespace UnturnedMarketplacePlugin
 
         public MarketplaceConfiguration config => Configuration.Instance;
 
+
         protected override void Load()
         {
             Instance = this;
             WebClient = new WebClient();
-            WebClient.Headers.Add("x-api-key", config.ApiKey);
-			this.LoadAssets();
-
-
-
-			//var arr = ItemTool.captureIcon(itemAsset.id, 0, itemAsset.item.transform, itemAsset.item.GetComponent("Icon").transform, itemAsset.size_x, itemAsset.size_y, itemAsset.size_z, true);
-
-
-
-			//IconUtils.captureItemIcon(itemAsset);
-			//string path = string.Concat(new object[]
-			//{
-			//	ReadWrite.PATH,
-			//	"/Extras/Icons/",
-			//	itemAsset.name,
-			//	"_",
-			//	itemAsset.id
-			//});
-			//Console.WriteLine(path);
-			//ThreadPool.QueueUserWorkItem(async delegate (object a)
-			//{
-			//	await Task.Delay(4000);
-			//	try
-			//	{
-			//		byte[] arr = File.ReadAllBytes(path + ".png");
-			//		File.WriteAllBytes(this.Directory + "/test.png", arr);
-			//		arr = null;
-			//	}
-			//	catch (Exception e)
-			//	{
-			//		Console.WriteLine(e);
-			//	}
-			//});
+            WebClient.Headers["x-api-key"] = config.ApiKey;
+            this.LoadAssets();
 
 			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
         }
-
-		[RocketCommand("getIcon", "idk")]
-		public void GetIconCommand(Rocket.API.IRocketPlayer caller, string[] args)
-		{			
-			ItemAsset itemAsset = (ItemAsset)Assets.find(EAssetType.ITEM, ushort.Parse(args[0]));
-			
-		}
 
         protected override void Unload()
         {

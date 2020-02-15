@@ -5,6 +5,7 @@ using Rocket.Core.Utils;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -71,18 +72,26 @@ namespace UnturnedMarketplacePlugin.Extensions
             if (pluginInstance.config.Debug)
                 Logger.LogWarning($"Uploading {item.ItemName} [{item.ItemId}]...");
 
-            string content = JsonConvert.SerializeObject(item);
+            byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(item));
             try
             {
-                using (pluginInstance.WebClient)
+                var web = (HttpWebRequest)WebRequest.Create(pluginInstance.config.ApiUrl + "/unturneditems");
+                web.Timeout = pluginInstance.config.TimeoutMiliseconds;
+                web.ContentType = "application/json";
+                web.Headers["x-api-key"] = pluginInstance.config.ApiKey;
+                web.ContentLength = content.Length;
+                web.Method = "POST";
+
+                using (var stream = web.GetRequestStream())
                 {
-                    pluginInstance.WebClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-                    pluginInstance.WebClient.UploadString(pluginInstance.config.ApiUrl + "/unturneditems", content);
+                    stream.Write(content, 0, content.Length);
                 }
+                web.Abort();
             }
             catch (WebException e)
             {
                 Logger.LogException(e);
+                return;
             }
 
             Logger.Log($"Successfully uploaded {item.ItemName} [{item.ItemId}]!", ConsoleColor.Yellow);
@@ -94,15 +103,22 @@ namespace UnturnedMarketplacePlugin.Extensions
             if (pluginInstance.config.Debug)
                 Logger.LogWarning($"Uploading icon for {itemId}...");
 
-            string content = JsonConvert.SerializeObject(new UnturnedItem() { Icon = icon });
+            byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(new UnturnedItem() { Icon = icon }));
 
             try
             {
-                using (pluginInstance.WebClient)
+                var web = (HttpWebRequest)WebRequest.Create(pluginInstance.config.ApiUrl + $"/unturneditems/{itemId}/icon");
+                web.Timeout = pluginInstance.config.TimeoutMiliseconds;
+                web.ContentType = "application/json";
+                web.Headers["x-api-key"] = pluginInstance.config.ApiKey;
+                web.ContentLength = content.Length;
+                web.Method = "POST";
+
+                using (var stream = web.GetRequestStream())
                 {
-                    pluginInstance.WebClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-                    pluginInstance.WebClient.UploadString(pluginInstance.config.ApiUrl + $"/unturneditems/{itemId}/icon", content);
+                    stream.Write(content, 0, content.Length);
                 }
+                web.Abort();
             }
             catch (WebException e)
             {
@@ -115,16 +131,24 @@ namespace UnturnedMarketplacePlugin.Extensions
         public static bool TryUploadMarketItem(this MarketplacePlugin pluginInstance, MarketItem marketItem)
         {
             if (pluginInstance.config.Debug)
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Uploading new listing for {marketItem.ItemId} from {marketItem.SellerId}..."));
+                Logger.LogWarning($"Uploading new listing for {marketItem.ItemId} from {marketItem.SellerId}...");
 
-            string content = JsonConvert.SerializeObject(marketItem);
+            byte[] content = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(marketItem));
             try
             {
-                using (pluginInstance.WebClient)
+                var web = (HttpWebRequest)WebRequest.Create(pluginInstance.config.ApiUrl + "/marketitems");
+                web.Timeout = pluginInstance.config.TimeoutMiliseconds;
+                web.Headers["x-api-key"] = pluginInstance.config.ApiKey;
+                web.ContentType = "application/json";   
+                web.ContentLength = content.Length;
+                web.Method = "POST";
+                
+                using (var stream = web.GetRequestStream())
                 {
-                    pluginInstance.WebClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-                    pluginInstance.WebClient.UploadString(pluginInstance.config.ApiUrl + "/marketitems", content);
+                    stream.Write(content, 0, content.Length);
+                    stream.Close();
                 }
+                web.Abort();
             }
             catch (WebException e)
             {
@@ -143,13 +167,20 @@ namespace UnturnedMarketplacePlugin.Extensions
             string content = string.Empty;
             try
             {
-                using (pluginInstance.WebClient)
-                {
-                    content = pluginInstance.WebClient.DownloadString(pluginInstance.config.ApiUrl + $"/marketitems/{id}/claim?playerId={playerId}");
+                var web = (HttpWebRequest)WebRequest.Create(pluginInstance.config.ApiUrl + $"/marketitems/{id}/claim?playerId={playerId}");
+                
+                web.Timeout = pluginInstance.config.TimeoutMiliseconds;
+                web.Headers["x-api-key"] = pluginInstance.config.ApiKey;
+
+                var response = (HttpWebResponse)web.GetResponse();
+                using (var reader = new StreamReader(response.GetResponseStream()))
+                {                    
+                    content = reader.ReadToEnd();
                 }
+                web.Abort();
             } catch (WebException e)
             {
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Failed to claim market item {id} listing due to {e.Status}!"));
+                Logger.LogWarning($"Failed to claim market item {id} listing due to {e.Status}!");
             }            
 
             MarketItem marketItem = null;
@@ -159,7 +190,7 @@ namespace UnturnedMarketplacePlugin.Extensions
             }
             catch (Exception e)
             {
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogException(e));
+                Logger.LogException(e);
             }
             return marketItem;
         }
@@ -177,7 +208,6 @@ namespace UnturnedMarketplacePlugin.Extensions
             {
                 Logger.LogWarning($"Failed to download existing items due to {e.Status}!");
             }
-            
 
             List<UnturnedItem> items = null;
 

@@ -1,10 +1,6 @@
 ﻿using Dapper;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Marketplace.Server.Database
 {
@@ -27,7 +23,5 @@ namespace Marketplace.Server.Database
                 return conn.ExecuteScalar<decimal>(sql, new { playerId });
             }
         }
-
-
     }
 }

@@ -51,7 +51,7 @@ namespace Marketplace.Client.Pages
                     await Swal.FireAsync("Purchase Success", $"You successfully bought {Item.ItemName}({listing.ItemId}) for ${listing.Price}!", SweetAlertIcon.Success);
                 } else
                 {
-                    await Swal.FireAsync("Purchase Error", $"The item has already been bought or you can't afford it!", SweetAlertIcon.Error);
+                    await Swal.FireAsync("Purchase Error", $"The item has already been bought, it's you listing or you can't afford it!", SweetAlertIcon.Error);
                 }                
             } else
             {

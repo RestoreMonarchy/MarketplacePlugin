@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
-using System.Threading.Tasks;
-using Marketplace.Server.Database;
+using ApiKeyAuthentication;
+using DatabaseManager;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 
 namespace Marketplace.Server.Controllers
 {
@@ -13,12 +10,11 @@ namespace Marketplace.Server.Controllers
     [Route("api/[controller]")]
     public class UnturnedItemsController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
-        private SqlConnection connection => new SqlConnection(_configuration.GetConnectionString("WebDatabase"));
+        private readonly IDatabaseManager _databaseManager;
 
-        public UnturnedItemsController(IConfiguration configuration)
+        public UnturnedItemsController(IDatabaseManager databaseManager)
         {
-            _configuration = configuration;
+            _databaseManager = databaseManager;
         }
 
         [HttpGet]
@@ -28,34 +24,35 @@ namespace Marketplace.Server.Controllers
             {
                 if (withNoIcons)
                 {
-                    return connection.GetUnturnedItemsIdsNoIcon();  
+                    return _databaseManager.GetUnturnedItemsIdsNoIcon();  
                 } else
                 {
-                    return connection.GetUnturnedItemsIds();
+                    return _databaseManager.GetUnturnedItemsIds();
                 }                
             }
             else
             {
-                return connection.GetUnturnedItems();
+                return _databaseManager.GetUnturnedItems();
             }
         }
 
         [HttpGet("{itemId}")]
         public UnturnedItem GetUnturnedItem(ushort itemId)
         {
-            return connection.GetUnturnedItem(itemId);
+            return _databaseManager.GetUnturnedItem(itemId);
         }
 
+        [ApiKeyAuth]
         [HttpPost("{itemId}/icon")]
         public void AddIcon(ushort itemId, [FromBody] UnturnedItem item)
         {
-            connection.AddItemIcon(itemId, item.Icon);
+            _databaseManager.AddItemIcon(itemId, item.Icon);
         }
 
         [HttpGet("{itemId}/icon")]
         public IActionResult GetIcon(ushort itemId)
         {
-            byte[] data = connection.GetItemIcon(itemId);
+            byte[] data = _databaseManager.GetItemIcon(itemId);
             if (data != null)
             {
                 return File(data, "image/png");
@@ -65,10 +62,11 @@ namespace Marketplace.Server.Controllers
             }            
         }
 
-        [HttpPost]
+        [ApiKeyAuth]
+        [HttpPost]        
         public void AddUnturnedItems([FromBody] UnturnedItem item)
         {
-            connection.AddUnturnedItem(item);
+            _databaseManager.AddUnturnedItem(item);
         }
     }
 }
