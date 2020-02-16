@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ApiKeyAuthentication;
 using DatabaseManager;
+using Marketplace.Server.Models;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +13,7 @@ namespace Marketplace.Server.Controllers
     public class UnturnedItemsController : ControllerBase
     {
         private readonly IDatabaseManager _databaseManager;
+        private Dictionary<ushort, IconCache> cacheIcons = new Dictionary<ushort, IconCache>();
 
         public UnturnedItemsController(IDatabaseManager databaseManager)
         {
@@ -52,14 +55,22 @@ namespace Marketplace.Server.Controllers
         [HttpGet("{itemId}/icon")]
         public IActionResult GetIcon(ushort itemId)
         {
-            byte[] data = _databaseManager.GetItemIcon(itemId);
-            if (data != null)
+            if (!cacheIcons.TryGetValue(itemId, out IconCache cache) || cache.LastUpdate.AddMinutes(10) > DateTime.Now)
             {
-                return File(data, "image/png");
-            } else
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"Getting icon for {itemId} ");
+                Console.ResetColor();
+                cacheIcons[itemId] = new IconCache(_databaseManager.GetItemIcon(itemId), DateTime.Now);
+            }
+
+            if (cacheIcons[itemId].Data != null)
+            {                
+                return File(cacheIcons[itemId].Data, "image/png");
+            }
+            else
             {
                 return File(new byte[0] { }, "image/png");
-            }            
+            }
         }
 
         [ApiKeyAuth]
