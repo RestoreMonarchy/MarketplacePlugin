@@ -74,8 +74,7 @@ namespace Marketplace.Client.Pages
                 {
                     await Swal.FireAsync("Canceled", $"Changing price for listing {item.Id} canceled.", SweetAlertIcon.Error);
                 }
-            });
-            
+            });            
         }
     }
 }

@@ -17,7 +17,7 @@
         <AuthorizeView>
             <Authorized>
                 <span class="navbar-text">
-                    Balance: <b>@context.User.FindFirst("Balance").Value</b>
+                    Balance: <b>@Balance</b>
                 </span>
                 <form class="form-inline ml-lg-2" method="get" action="/signout">
                     <button class="btn btn-primary my-2 my-sm-0" type="submit">Sign Out</button>
@@ -31,3 +31,29 @@
         </AuthorizeView>
     </div>
 </nav>
+
+@code  {
+    [Inject]
+    public HttpClient HttpClient { get; set; }
+    [Inject]
+    public AuthenticationStateProvider authProvider { get; set; }
+    private AuthenticationState authState { get; set; }
+    public decimal Balance { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        authState = await authProvider.GetAuthenticationStateAsync();
+        navManager.LocationChanged += async (a, b) => await UpdateBalance();
+        await UpdateBalance();
+    }
+
+
+    public async Task UpdateBalance()
+    {
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            Balance = await HttpClient.GetJsonAsync<decimal>("mybalance");
+            StateHasChanged();
+        }
+    }
+}

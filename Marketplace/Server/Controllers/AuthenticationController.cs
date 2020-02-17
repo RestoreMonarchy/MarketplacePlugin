@@ -7,6 +7,7 @@ using Marketplace.Server.Database;
 using Marketplace.Shared;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -35,8 +36,7 @@ namespace Marketplace.Server.Controllers
                 return new UserInfo()
                 {
                     SteamId = User.Identity.Name,
-                    Role = User.FindFirst(ClaimTypes.Role).Value,
-                    Balance = serversConnection.UconomyGetBalance(User.Identity.Name),
+                    Role = User.FindFirst(ClaimTypes.Role).Value,                    
                     IsAuthenticated = true
                 };
             }
