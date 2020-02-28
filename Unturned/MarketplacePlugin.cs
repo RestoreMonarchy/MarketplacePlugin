@@ -9,6 +9,8 @@ namespace UnturnedMarketplacePlugin
 {
     public class MarketplacePlugin : RocketPlugin<MarketplaceConfiguration>
     {
+        public const string SecretUserID = "{{U}}";
+
         public static MarketplacePlugin Instance { get; private set; }
         public MarketplaceConfiguration config => Configuration.Instance;
         public UnityEngine.Color MessageColor { get; set; }
