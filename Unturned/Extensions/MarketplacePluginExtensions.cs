@@ -131,7 +131,7 @@ namespace UnturnedMarketplacePlugin.Extensions
             {
                 using (WebClient wc = new WebClient())
                 {
-                    content = wc.DownloadString(pluginInstance.config.ApiUrl + "/unturneditems?onlyids=true");
+                    content = wc.DownloadString(pluginInstance.config.ApiUrl + "/unturneditems");
                 }
             } catch (WebException e)
             {
