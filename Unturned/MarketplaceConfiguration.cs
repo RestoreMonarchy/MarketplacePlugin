@@ -6,6 +6,7 @@ namespace UnturnedMarketplacePlugin
     public class MarketplaceConfiguration : IRocketPluginConfiguration
     {
         public string MessageColor { get; set; }
+        public int ServerId { get; set; }
         public string ApiUrl { get; set; }
         public string ApiKey { get; set; }
         public int TimeoutMiliseconds { get; set; }

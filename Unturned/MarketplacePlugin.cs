@@ -2,12 +2,14 @@
 using Rocket.Core.Plugins;
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using UnturnedMarketplacePlugin.Extensions;
+using UnturnedMarketplacePlugin.Services;
 using Logger = Rocket.Core.Logging.Logger;
 
 namespace UnturnedMarketplacePlugin
 {
-    public class MarketplacePlugin : RocketPlugin<MarketplaceConfiguration>
+    public sealed class MarketplacePlugin : RocketPlugin<MarketplaceConfiguration>
     {
         public const string SecretUserID = "{{U}}";
 
@@ -15,11 +17,15 @@ namespace UnturnedMarketplacePlugin
         public MarketplaceConfiguration config => Configuration.Instance;
         public UnityEngine.Color MessageColor { get; set; }
 
+        public ProductsService ProductsService { get; set; }
+
         protected override void Load()
         {
             Instance = this;
             MessageColor = Rocket.Unturned.Chat.UnturnedChat.GetColorFromName(config.MessageColor, UnityEngine.Color.green);
-            this.LoadAssets();
+            //this.LoadAssets();
+
+            ProductsService = gameObject.AddComponent<ProductsService>();
 
 			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
         }
