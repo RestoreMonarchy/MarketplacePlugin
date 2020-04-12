@@ -36,7 +36,8 @@ namespace UnturnedMarketplacePlugin
             { "ClaimSuccess", "Successfully claimed your {0} of order {1}!" },
             { "SellInvalid", "Invalid usage. Use: /claim <price>" },
             { "SellSuccess", "Successfully put your {0} on sale for {1}!" },
-            { "SellReturned", "Your {0} returned. Try again later." }
+            { "SellTimeout", "Timeout, Try again later. {0} returned" },
+            { "SellLimit", "You have reached the limit of maximum active sellings. {0} returned" }
         };
     }
 }

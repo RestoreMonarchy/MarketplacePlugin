@@ -70,31 +70,49 @@ namespace UnturnedMarketplacePlugin.Extensions
         }
 
 
-        public static bool TryUploadMarketItem(this MarketplacePlugin pluginInstance, MarketItem marketItem)
+        public static int TryUploadMarketItem(this MarketplacePlugin pluginInstance, MarketItem marketItem)
         {
             if (pluginInstance.config.Debug)
                 Logger.LogWarning($"Uploading new listing for {marketItem.ItemId} from {marketItem.SellerId}...");
 
+            int num = 2;
+
             string content = JsonConvert.SerializeObject(marketItem);
             try
             {
-                using (WebClient wc = new WebClient())
+                var request = (HttpWebRequest)WebRequest.Create(pluginInstance.config.ApiUrl + "/marketitems");
+                var data = Encoding.ASCII.GetBytes(content);
+
+                request.Method = "POST";
+                request.ContentType = "application/json";
+                request.ContentLength = data.Length;
+
+                using (var stream = request.GetRequestStream())
                 {
-                    wc.Headers[HttpRequestHeader.ContentType] = "application/json";
-                    wc.Headers["x-api-key"] = pluginInstance.config.ApiKey;
-                    wc.UploadString(pluginInstance.config.ApiUrl + $"/marketitems", content);
+                    stream.Write(data, 0, data.Length);
+                }
+                var response = (HttpWebResponse)request.GetResponse();
+
+                switch (response.StatusCode)
+                {
+                    case HttpStatusCode.OK:
+                        num = 0;
+                        break;
+                    case HttpStatusCode.Conflict:
+                        num = 1;
+                        break;
                 }
             }
             catch (WebException e)
             {
                 TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Failed to upload {marketItem.SellerId} listing due to {e.Status}!"));
-                return false;
+                return num;
             }
 
             if (pluginInstance.config.Debug)
                 TaskDispatcher.QueueOnMainThread(() => Logger.LogWarning($"Item {marketItem.ItemId} from {marketItem.SellerId} has been uploaded!"));
 
-            return true;
+            return num;
         }
 
         public static MarketItem ClaimMarketItem(this MarketplacePlugin pluginInstance, int id, string playerId)

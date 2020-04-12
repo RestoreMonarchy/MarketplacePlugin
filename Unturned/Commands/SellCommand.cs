@@ -57,22 +57,34 @@ namespace UnturnedMarketplacePlugin.Commands
                 {                    
                     var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id);
                     ThreadPool.QueueUserWorkItem((a) => 
-                    {                        
-                        if (pluginInstance.TryUploadMarketItem(item))
+                    {
+                        int num = pluginInstance.TryUploadMarketItem(item);
+
+                        switch (num)
                         {
-                            TaskDispatcher.QueueOnMainThread(() =>
-                            {
-                                ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
-                                UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
-                            });
-                        } else
-                        {
-                            TaskDispatcher.QueueOnMainThread(() => 
-                            {
-                                ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
-                                player.Inventory.forceAddItem(jar.item, true);
-                                UnturnedChat.Say(player, pluginInstance.Translate("SellReturned", asset.itemName), pluginInstance.MessageColor);
-                            });
+                            case 0:
+                                TaskDispatcher.QueueOnMainThread(() =>
+                                {
+                                    ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
+                                });
+                                break;
+                            case 1:
+                                TaskDispatcher.QueueOnMainThread(() =>
+                                {
+                                    ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
+                                    player.Inventory.forceAddItem(jar.item, true);
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor);
+                                });
+                                break;
+                            case 2:
+                                TaskDispatcher.QueueOnMainThread(() =>
+                                {
+                                    ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
+                                    player.Inventory.forceAddItem(jar.item, true);
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellTimeout", asset.itemName), pluginInstance.MessageColor);
+                                });
+                                break;
                         }
                     });
                     
