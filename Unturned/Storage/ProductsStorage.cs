@@ -4,10 +4,10 @@ using System.IO;
 
 namespace UnturnedMarketplacePlugin.Storage
 {
-    public class ProductsStorage<T> where T : class
+    public class DataStorage<T> where T : class
     {
         public string DataPath { get; private set; }
-        public ProductsStorage(string dir, string fileName)
+        public DataStorage(string dir, string fileName)
         {
             DataPath = Path.Combine(dir, fileName);
         }

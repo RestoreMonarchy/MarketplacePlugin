@@ -13,7 +13,6 @@ namespace UnturnedMarketplacePlugin.Extensions
         public static T DownloadJson<T>(this WebClient webclient, string address)
         {
             string data = webclient.DownloadString(address);
-            Console.WriteLine(data);
             return JsonConvert.DeserializeObject<T>(data);
         }
     }

@@ -14,6 +14,9 @@ using UnturnedMarketplacePlugin.Models;
 using UnturnedMarketplacePlugin.Storage;
 using Timer = System.Timers.Timer;
 using Logger = Rocket.Core.Logging.Logger;
+using SDG.Unturned;
+using System.Threading;
+using Math = System.Math;
 
 namespace UnturnedMarketplacePlugin.Services
 {
@@ -22,57 +25,65 @@ namespace UnturnedMarketplacePlugin.Services
         private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
         private WebClient webClient = new WebClient();
 
-        public ProductsStorage<List<AwaitingCommand>> Storage { get; private set; }
+        public DataStorage<List<AwaitingCommand>> Storage { get; private set; }
         public List<AwaitingCommand> AwaitingCommands { get; set; }
-        
+
+        public Timer RefreshTimer { get; private set; }
+
         void Awake()
         {
-            Logger.Log("Initializing ProductsService");
-            Storage = new ProductsStorage<List<AwaitingCommand>>(pluginInstance.Directory, "ProductsData.json");
+            if (pluginInstance.config.Debug)
+                Logger.Log($"Initializing {nameof(ProductsService)}", ConsoleColor.Yellow);
+            
+            Storage = new DataStorage<List<AwaitingCommand>>(pluginInstance.Directory, "ProductsData.json");
 
             if ((AwaitingCommands = Storage.Read()) == null)
             {
                 AwaitingCommands = new List<AwaitingCommand>();
                 Storage.Save(AwaitingCommands);
             }
-            Task.Run(RefreshAwaitingCommands);
-            U.Events.OnPlayerConnected += OnPlayerConnected;
+
+            ThreadPool.QueueUserWorkItem((a) => RefreshAwaitingCommands());
+
+            RefreshTimer = new Timer(Math.Max(1000, pluginInstance.config.ProductsRefreshMiliseconds));
+            RefreshTimer.Elapsed += (a, b) => RefreshAwaitingCommands();
+            RefreshTimer.Start();
+
+            U.Events.OnPlayerConnected += OnPlayerConnected;            
         }
 
         private void OnPlayerConnected(UnturnedPlayer player)
         {
-            foreach (var command in AwaitingCommands.Where(x => x.PlayerId == player.Id && x.ExecuteOnPlayerJoin))
+            foreach (var command in AwaitingCommands.Where(x => x.PlayerId == player.Id && x.ExecuteOnPlayerJoin).ToList())
             {
                 ExecuteCommand(command.CommandText, command.PlayerId, command.PlayerName);
+                AwaitingCommands.Remove(command);
+                Storage.Save(AwaitingCommands);
             }
         }
 
         public void RefreshAwaitingCommands()
         {
-            TaskDispatcher.QueueOnMainThread(() => Logger.Log($"RefreshAwaitingCommands called"));
-            IEnumerable<ProductTransaction> transactions;
+            if (pluginInstance.config.Debug)
+                Logger.Log($"RefreshAwaitingCommands called", ConsoleColor.Yellow);
+            IEnumerable<ServerTransaction> transactions;
+
             webClient.Headers["x-api-key"] = pluginInstance.config.ApiKey;
-            try
-            {
-                transactions = webClient.DownloadJson<List<ProductTransaction>>(
-                    pluginInstance.config.ApiUrl + $"/products/server?serverId={pluginInstance.config.ServerId}");
-            } catch (Exception e)
-            {
-                TaskDispatcher.QueueOnMainThread(() => Logger.LogException(e));
-                return;
-            }
-
-            // ends somehwere around here damn it
-
-            TaskDispatcher.QueueOnMainThread(() => Logger.Log($"Transactions count: {transactions.Count()}"));
+            transactions = webClient.DownloadJson<List<ServerTransaction>>(
+                pluginInstance.config.ApiUrl + $"/products/server?serverId={pluginInstance.config.ServerId}");
             
-
             foreach (var transaction in transactions)
             {
-                foreach (var command in transaction.Product.Commands)
+                Logger.Log($"[Received Transaction] {transaction.PlayerName} bought {transaction.ProductTitle}!");
+                foreach (var command in transaction.Commands)
                 {
                     if (command.ExecuteOnBuyerJoinServer)
-                        AwaitingCommands.Add(new AwaitingCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName));
+                    {
+                        if (PlayerTool.getSteamPlayer(ulong.Parse(transaction.PlayerId)) != null)
+                            ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
+                        else
+                            AwaitingCommands.Add(new AwaitingCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName));
+                    }                        
                     else
                         ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
 
@@ -83,6 +94,7 @@ namespace UnturnedMarketplacePlugin.Services
                     }
                 }
             }
+            Storage.Save(AwaitingCommands);
             InitializeAwaitingCommandsTimers();
         }
 
@@ -97,7 +109,12 @@ namespace UnturnedMarketplacePlugin.Services
                         command.ExecuteTimer = new Timer(Math.Max(1, (command.ExecuteTime - DateTime.Now).Value.Milliseconds));
                         command.ExecuteTimer.AutoReset = false;
                         command.ExecuteTimer.Elapsed +=
-                            (a, b) => ExecuteCommand(command.CommandText, command.PlayerId, command.PlayerName);
+                            (a, b) => 
+                            {
+                                ExecuteCommand(command.CommandText, command.PlayerId, command.PlayerName);
+                                AwaitingCommands.Remove(command);
+                                Storage.Save(AwaitingCommands);
+                            };
                         command.ExecuteTimer.Start();
                     }
                 }
@@ -105,15 +122,19 @@ namespace UnturnedMarketplacePlugin.Services
         }
 
         public void ExecuteCommand(string commandText, string playerId, string playerName)
-        {
-            Logger.Log($"{commandText} for {playerId}[{playerName}] executes");
-            TaskDispatcher.QueueOnMainThread(() => R.Commands.Execute(null, 
-                commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName)));
+        {            
+            TaskDispatcher.QueueOnMainThread(() => 
+            {
+                Logger.Log($"Executing {commandText} for {playerName}[{playerId}]");
+                R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName));
+            });
         }
 
         void OnDestroy()
         {
+            Storage.Save(AwaitingCommands);
             U.Events.OnPlayerConnected -= OnPlayerConnected;
+            RefreshTimer.Dispose();
             lock (AwaitingCommands)
             {
                 foreach (var command in AwaitingCommands)

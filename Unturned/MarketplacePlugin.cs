@@ -32,6 +32,7 @@ namespace UnturnedMarketplacePlugin
 
         protected override void Unload()
         {
+            Destroy(ProductsService);
             Logger.Log($"{Name} has been unloaded!", ConsoleColor.Yellow);
         }
 
