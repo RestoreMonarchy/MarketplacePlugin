@@ -21,9 +21,7 @@ namespace UnturnedMarketplacePlugin.Storage
                 stream.Write(objData);
             }
         }
-
-        ///<summary>We want to pass exception to the caller, therefore T is out parameter and return is boolean. 
-        ///When caller gets false then you may want to unload plugin.</summary>
+                    
         public T Read()
         {
             if (File.Exists(DataPath))
@@ -33,15 +31,7 @@ namespace UnturnedMarketplacePlugin.Storage
                 {
                     dataText = stream.ReadToEnd();                    
                 }
-                try
-                {
-                    return JsonConvert.DeserializeObject<T>(dataText);
-                }
-                catch (JsonException e)
-                {
-                    Logger.LogError(e.Message);
-                    return null;
-                }
+                return JsonConvert.DeserializeObject<T>(dataText);
             } else
             {
                 return null;

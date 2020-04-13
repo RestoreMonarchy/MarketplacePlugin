@@ -73,7 +73,6 @@
   <ItemGroup>
     <Compile Include="Commands\ClaimCommand.cs" />
     <Compile Include="Commands\SellCommand.cs" />
-    <Compile Include="Extensions\MarketplacePluginExtensions.cs" />
     <Compile Include="Extensions\WebClientExtensions.cs" />
     <Compile Include="MarketplaceConfiguration.cs" />
     <Compile Include="MarketplacePlugin.cs" />

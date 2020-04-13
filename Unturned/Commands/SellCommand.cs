@@ -9,6 +9,7 @@ using Marketplace.Shared;
 using UnturnedMarketplacePlugin.Extensions;
 using System.Threading;
 using Rocket.Core.Utils;
+using System.Net;
 
 namespace UnturnedMarketplacePlugin.Commands
 {
@@ -58,18 +59,18 @@ namespace UnturnedMarketplacePlugin.Commands
                     var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id);
                     ThreadPool.QueueUserWorkItem((a) => 
                     {
-                        int num = pluginInstance.TryUploadMarketItem(item);
+                        var responseStatus = pluginInstance.MarketItemsService.UploadMarketItem(item);
 
-                        switch (num)
+                        switch (responseStatus)
                         {
-                            case 0:
+                            case HttpStatusCode.OK:
                                 TaskDispatcher.QueueOnMainThread(() =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
                                 });
                                 break;
-                            case 1:
+                            case HttpStatusCode.Conflict:
                                 TaskDispatcher.QueueOnMainThread(() =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
@@ -77,7 +78,7 @@ namespace UnturnedMarketplacePlugin.Commands
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor);
                                 });
                                 break;
-                            case 2:
+                            default:
                                 TaskDispatcher.QueueOnMainThread(() =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;

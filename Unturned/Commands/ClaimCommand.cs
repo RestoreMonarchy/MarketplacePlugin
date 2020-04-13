@@ -39,7 +39,7 @@ namespace UnturnedMarketplacePlugin.Commands
 
             void ProcessClaim(object a)
             {
-                MarketItem item = pluginInstance.ClaimMarketItem(id, player.Id);
+                MarketItem item = pluginInstance.MarketItemsService.ClaimMarketItem(id, player.Id);
                 if (item == null || item.BuyerId != player.Id || item.IsClaimed)
                 {
                     TaskDispatcher.QueueOnMainThread(() => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor));

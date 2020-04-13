@@ -17,15 +17,16 @@ namespace UnturnedMarketplacePlugin
         public MarketplaceConfiguration config => Configuration.Instance;
         public UnityEngine.Color MessageColor { get; set; }
 
-        public ProductsService ProductsService { get; set; }
+        public ProductsService ProductsService { get; private set; }
+        public MarketItemsService MarketItemsService { get; private set; }
 
         protected override void Load()
         {
             Instance = this;
             MessageColor = Rocket.Unturned.Chat.UnturnedChat.GetColorFromName(config.MessageColor, UnityEngine.Color.green);
-            //this.LoadAssets();
 
             ProductsService = gameObject.AddComponent<ProductsService>();
+            MarketItemsService = gameObject.AddComponent<MarketItemsService>();
 
 			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
         }
@@ -33,6 +34,7 @@ namespace UnturnedMarketplacePlugin
         protected override void Unload()
         {
             Destroy(ProductsService);
+            Destroy(MarketItemsService);
             Logger.Log($"{Name} has been unloaded!", ConsoleColor.Yellow);
         }
 
