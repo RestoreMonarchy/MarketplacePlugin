@@ -6,6 +6,7 @@ using Rocket.Unturned.Player;
 using SDG.Unturned;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using UnturnedMarketplacePlugin.Extensions;
 
 namespace UnturnedMarketplacePlugin.Commands
@@ -35,18 +36,21 @@ namespace UnturnedMarketplacePlugin.Commands
             }
             UnturnedPlayer player = (UnturnedPlayer)caller;
 
-            ThreadPool.QueueUserWorkItem(ProcessClaim);
-
-            void ProcessClaim(object a)
+            Task.Run(ProcessClaim).ContinueWith(c =>
             {
-                MarketItem item = pluginInstance.MarketItemsService.ClaimMarketItem(id, player.Id);
+                TaskDispatcher.QueueOnMainThread(c.Result);
+            });
+
+            
+            async Task<System.Action> ProcessClaim()
+            {
+                MarketItem item = await pluginInstance.MarketItemsService.ClaimMarketItem(id, player.Id);
                 if (item == null || item.BuyerId != player.Id || item.IsClaimed)
                 {
-                    TaskDispatcher.QueueOnMainThread(() => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor));
-                    return;
+                    return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor);
                 }
 
-                TaskDispatcher.QueueOnMainThread(() => 
+                return (() => 
                 {
                     var asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                     if (asset != null)

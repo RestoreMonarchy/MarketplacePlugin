@@ -10,9 +10,10 @@ namespace UnturnedMarketplacePlugin.Extensions
 {
     public static class WebClientExtensions
     {
-        public static T DownloadJson<T>(this WebClient webClient, string address)
+        public static async Task<T> DownloadJsonAsync<T>(this WebClient webClient, string address)
         {
-            string data = webClient.DownloadString(address);
+            
+            string data = await webClient.DownloadStringTaskAsync(new Uri(address));
             return JsonConvert.DeserializeObject<T>(data);
         }
 

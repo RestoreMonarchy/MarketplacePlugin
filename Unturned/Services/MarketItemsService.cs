@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnturnedMarketplacePlugin.Extensions;
 using Logger = Rocket.Core.Logging.Logger;
@@ -19,22 +20,30 @@ namespace UnturnedMarketplacePlugin.Services
 
         void Awake()
         {
-            var existingItems = webClient.DownloadJson<List<UnturnedItem>>(pluginInstance.config.ApiUrl + "/unturneditems").Select(x => x.ItemId);
-            Logger.Log($"There are {existingItems.Count()} already existing items!");
-            foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
+            Task.Run(async () =>
             {
-                if (!string.IsNullOrEmpty(asset.itemName) && !asset.itemName.Equals("#NAME") && !existingItems.Contains(asset.id))
+                var existingItems = (await webClient.DownloadJsonAsync<List<UnturnedItem>>(pluginInstance.config.ApiUrl + "/unturneditems"))
+                .Select(x => x.ItemId);
+
+                Logger.Log($"There are {existingItems.Count()} already existing items!");
+                foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
                 {
-                    try
+                    if (!string.IsNullOrEmpty(asset.itemName) && !asset.itemName.Equals("#NAME") && !existingItems.Contains(asset.id))
                     {
-                        UploadUnturnedItem(new UnturnedItem(asset.id, asset.itemName, (Marketplace.Shared.EItemType)asset.type,
-                            asset.itemDescription, asset.amount));
-                    } catch (Exception e)
-                    {
-                        Logger.LogException(e);
-                    }                    
+                        try
+                        {
+                            await UploadUnturnedItemAsync(new UnturnedItem(asset.id, asset.itemName, (Marketplace.Shared.EItemType)asset.type,
+                                asset.itemDescription, asset.amount));
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogException(e);
+                        }
+                    }
                 }
-            }
+
+            }).ConfigureAwait(true) //Makes sure to run this task on the captured context (the main thread so to speak)
+            .GetAwaiter().GetResult();
         }
 
         public HttpStatusCode UploadMarketItem(MarketItem marketItem)
@@ -62,13 +71,13 @@ namespace UnturnedMarketplacePlugin.Services
             }
         }
 
-        public MarketItem ClaimMarketItem(int id, string playerId)
+        public async Task<MarketItem> ClaimMarketItem(int id, string playerId)
         {
             webClient.Headers["x-api-key"] = pluginInstance.config.ApiKey;
-            return webClient.DownloadJson<MarketItem>(pluginInstance.config.ApiUrl + $"/marketitems/{id}/claim?playerId={playerId}");
+            return await webClient.DownloadJsonAsync<MarketItem>(pluginInstance.config.ApiUrl + $"/marketitems/{id}/claim?playerId={playerId}");
         }
 
-        public HttpStatusCode UploadUnturnedItem(UnturnedItem unturnedItem)
+        public async Task<HttpStatusCode> UploadUnturnedItemAsync(UnturnedItem unturnedItem)
         {
             if (pluginInstance.config.Debug)
                 Logger.LogWarning($"Uploading UnturnedItem {unturnedItem.ItemName}[{unturnedItem.ItemId}]...");
@@ -84,7 +93,7 @@ namespace UnturnedMarketplacePlugin.Services
 
             using (var stream = request.GetRequestStream())
             {
-                stream.Write(data, 0, data.Length);
+                await stream.WriteAsync(data, 0, data.Length);
             }
 
             using (var response = (HttpWebResponse)request.GetResponse())

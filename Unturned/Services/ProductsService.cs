@@ -68,8 +68,8 @@ namespace UnturnedMarketplacePlugin.Services
             IEnumerable<ServerTransaction> transactions;
 
             webClient.Headers["x-api-key"] = pluginInstance.config.ApiKey;
-            transactions = webClient.DownloadJson<List<ServerTransaction>>(
-                pluginInstance.config.ApiUrl + $"/products/server?serverId={pluginInstance.config.ServerId}");
+            transactions = webClient.DownloadJsonAsync<List<ServerTransaction>>(
+                pluginInstance.config.ApiUrl + $"/products/server?serverId={pluginInstance.config.ServerId}")?.GetAwaiter().GetResult();
             
             foreach (var transaction in transactions)
             {
