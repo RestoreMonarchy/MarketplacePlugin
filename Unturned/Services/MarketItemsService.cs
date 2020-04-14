@@ -20,7 +20,9 @@ namespace UnturnedMarketplacePlugin.Services
 
         void Awake()
         {
-            Task.Run(async () =>
+            AwakeAsync()?.GetAwaiter().GetResult();
+            
+            async Task AwakeAsync()
             {
                 var existingItems = (await webClient.DownloadJsonAsync<List<UnturnedItem>>(pluginInstance.config.ApiUrl + "/unturneditems"))
                 .Select(x => x.ItemId);
@@ -40,10 +42,11 @@ namespace UnturnedMarketplacePlugin.Services
                             Logger.LogException(e);
                         }
                     }
-                }
 
-            }).ConfigureAwait(true) //Makes sure to run this task on the captured context (the main thread so to speak)
-            .GetAwaiter().GetResult();
+
+                }
+            }
+
         }
 
         public HttpStatusCode UploadMarketItem(MarketItem marketItem)
