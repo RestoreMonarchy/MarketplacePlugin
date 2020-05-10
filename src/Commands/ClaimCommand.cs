@@ -7,9 +7,9 @@ using SDG.Unturned;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using UnturnedMarketplacePlugin.Extensions;
+using RestoreMonarchy.MarketplacePlugin.Extensions;
 
-namespace UnturnedMarketplacePlugin.Commands
+namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
     public class ClaimCommand : IRocketCommand
     {
@@ -40,7 +40,6 @@ namespace UnturnedMarketplacePlugin.Commands
             {
                 TaskDispatcher.QueueOnMainThread(c.Result);
             });
-
             
             async Task<System.Action> ProcessClaim()
             {
