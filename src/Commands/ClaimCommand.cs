@@ -5,9 +5,7 @@ using Rocket.Unturned.Chat;
 using Rocket.Unturned.Player;
 using SDG.Unturned;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
-using RestoreMonarchy.MarketplacePlugin.Extensions;
 
 namespace RestoreMonarchy.MarketplacePlugin.Commands
 {

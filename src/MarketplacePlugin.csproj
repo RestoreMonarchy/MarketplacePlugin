@@ -42,6 +42,9 @@
     <Reference Include="Marketplace.Shared">
       <HintPath>lib\Marketplace.Shared.dll</HintPath>
     </Reference>
+    <Reference Include="Marketplace.WebSockets">
+      <HintPath>lib\Marketplace.WebSockets.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>lib\Newtonsoft.Json.dll</HintPath>
@@ -63,6 +66,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Uconomy">
+      <HintPath>lib\Uconomy.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>lib\UnityEngine.dll</HintPath>
     </Reference>
@@ -73,14 +79,17 @@
   <ItemGroup>
     <Compile Include="Commands\ClaimCommand.cs" />
     <Compile Include="Commands\SellCommand.cs" />
-    <Compile Include="Extensions\WebClientExtensions.cs" />
+    <Compile Include="Economy\IEconomyProvider.cs" />
+    <Compile Include="Economy\UconomyEconomyProvider.cs" />
     <Compile Include="MarketplaceConfiguration.cs" />
     <Compile Include="MarketplacePlugin.cs" />
     <Compile Include="Models\AwaitingCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\MarketItemsService.cs" />
     <Compile Include="Services\ProductsService.cs" />
+    <Compile Include="Services\WebSocketsService.cs" />
     <Compile Include="Storage\ProductsStorage.cs" />
+    <Compile Include="Utilities\HttpWebClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -6,10 +6,10 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using Marketplace.Shared;
-using RestoreMonarchy.MarketplacePlugin.Extensions;
 using System.Threading;
 using Rocket.Core.Utils;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
@@ -57,44 +57,47 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                 if (page == PlayerInventory.STORAGE && player.Inventory.storage == interactableStorage)
                 {                    
                     var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id);
-                    ThreadPool.QueueUserWorkItem((a) => 
+
+                    Task.Run(ProcessSell).ContinueWith(c => 
                     {
-                        var responseStatus = pluginInstance.MarketItemsService.UploadMarketItem(item);
+                        TaskDispatcher.QueueOnMainThread(c.Result);
+                    });
+
+                    async Task<System.Action> ProcessSell()
+                    {
+                        var responseStatus = await pluginInstance.MarketItemsService.UploadMarketItemAsync(item);
+
+                        interactableStorage.items.clear();
+                        player.Inventory.closeStorageAndNotifyClient();
+                        Object.Destroy(interactableStorage);
+
+                        player.Inventory.onInventoryAdded -= inventoryAdded;
+                        player.Inventory.onInventoryResized -= inventoryResized;
 
                         switch (responseStatus)
                         {
                             case HttpStatusCode.OK:
-                                TaskDispatcher.QueueOnMainThread(() =>
+                                return () =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
-                                });
-                                break;
+                                };
                             case HttpStatusCode.Conflict:
-                                TaskDispatcher.QueueOnMainThread(() =>
+                                return () =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor);
-                                });
-                                break;
+                                };
                             default:
-                                TaskDispatcher.QueueOnMainThread(() =>
+                                return () =>
                                 {
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellTimeout", asset.itemName), pluginInstance.MessageColor);
-                                });
-                                break;
+                                };
                         }
-                    });
-                    
-                    interactableStorage.items.clear();                    
-                    player.Inventory.closeStorageAndNotifyClient();
-                    Object.Destroy(interactableStorage);
-
-                    player.Inventory.onInventoryAdded -= inventoryAdded;
-                    player.Inventory.onInventoryResized -= inventoryResized;
+                    }
                 }
             };
             

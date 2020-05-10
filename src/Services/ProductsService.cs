@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using UnityEngine;
-using RestoreMonarchy.MarketplacePlugin.Extensions;
 using RestoreMonarchy.MarketplacePlugin.Models;
 using RestoreMonarchy.MarketplacePlugin.Storage;
 using Timer = System.Timers.Timer;
@@ -16,13 +15,14 @@ using Logger = Rocket.Core.Logging.Logger;
 using SDG.Unturned;
 using System.Threading;
 using Math = System.Math;
+using RestoreMonarchy.MarketplacePlugin.Utilities;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
     public class ProductsService : MonoBehaviour
     {
         private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
-        private WebClient webClient = new WebClient();
+        private MarketplaceWebClient webClient = new MarketplaceWebClient();
 
         public DataStorage<List<AwaitingCommand>> Storage { get; private set; }
         public List<AwaitingCommand> AwaitingCommands { get; set; }
