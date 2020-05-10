@@ -6,12 +6,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using Marketplace.Shared;
-using UnturnedMarketplacePlugin.Extensions;
+using RestoreMonarchy.MarketplacePlugin.Extensions;
 using System.Threading;
 using Rocket.Core.Utils;
 using System.Net;
 
-namespace UnturnedMarketplacePlugin.Commands
+namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
     public class SellCommand : IRocketCommand
     {

@@ -1,11 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("UnturnedMarketplacePlugin")]
+[assembly: AssemblyTitle("MarketplacePlugin")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("UnturnedMarketplacePlugin")]
+[assembly: AssemblyProduct("MarketplacePlugin")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -14,5 +14,5 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("21d02097-8444-4823-a624-22f7b9718d7a")]
 
-[assembly: AssemblyVersion("1.1.0")]
-[assembly: AssemblyFileVersion("1.1.0")]
+[assembly: AssemblyVersion("1.1.2")]
+[assembly: AssemblyFileVersion("1.1.2")]

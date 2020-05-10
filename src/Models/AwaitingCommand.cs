@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace UnturnedMarketplacePlugin.Models
+namespace RestoreMonarchy.MarketplacePlugin.Models
 {
     public class AwaitingCommand
     {

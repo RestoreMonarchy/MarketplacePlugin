@@ -8,10 +8,10 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnturnedMarketplacePlugin.Extensions;
+using RestoreMonarchy.MarketplacePlugin.Extensions;
 using Logger = Rocket.Core.Logging.Logger;
 
-namespace UnturnedMarketplacePlugin.Services
+namespace RestoreMonarchy.MarketplacePlugin.Services
 {
     public class MarketItemsService : MonoBehaviour
     {

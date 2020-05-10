@@ -7,8 +7,8 @@
     <ProjectGuid>{21D02097-8444-4823-A624-22F7B9718D7A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnturnedMarketplacePlugin</RootNamespace>
-    <AssemblyName>UnturnedMarketplacePlugin</AssemblyName>
+    <RootNamespace>RestoreMonarchy.MarketplacePlugin</RootNamespace>
+    <AssemblyName>MarketplacePlugin</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -84,7 +84,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

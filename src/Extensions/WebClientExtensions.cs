@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace UnturnedMarketplacePlugin.Extensions
+namespace RestoreMonarchy.MarketplacePlugin.Extensions
 {
     public static class WebClientExtensions
     {

@@ -2,7 +2,7 @@
 using Rocket.Core.Logging;
 using System.IO;
 
-namespace UnturnedMarketplacePlugin.Storage
+namespace RestoreMonarchy.MarketplacePlugin.Storage
 {
     public class DataStorage<T> where T : class
     {

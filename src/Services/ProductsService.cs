@@ -8,16 +8,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using UnityEngine;
-using UnturnedMarketplacePlugin.Extensions;
-using UnturnedMarketplacePlugin.Models;
-using UnturnedMarketplacePlugin.Storage;
+using RestoreMonarchy.MarketplacePlugin.Extensions;
+using RestoreMonarchy.MarketplacePlugin.Models;
+using RestoreMonarchy.MarketplacePlugin.Storage;
 using Timer = System.Timers.Timer;
 using Logger = Rocket.Core.Logging.Logger;
 using SDG.Unturned;
 using System.Threading;
 using Math = System.Math;
 
-namespace UnturnedMarketplacePlugin.Services
+namespace RestoreMonarchy.MarketplacePlugin.Services
 {
     public class ProductsService : MonoBehaviour
     {

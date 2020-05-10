@@ -2,12 +2,10 @@
 using Rocket.Core.Plugins;
 using System;
 using System.Reflection;
-using System.Threading.Tasks;
-using UnturnedMarketplacePlugin.Extensions;
-using UnturnedMarketplacePlugin.Services;
+using RestoreMonarchy.MarketplacePlugin.Services;
 using Logger = Rocket.Core.Logging.Logger;
 
-namespace UnturnedMarketplacePlugin
+namespace RestoreMonarchy.MarketplacePlugin
 {
     public sealed class MarketplacePlugin : RocketPlugin<MarketplaceConfiguration>
     {

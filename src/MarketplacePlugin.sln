@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnturnedMarketplacePlugin", "Unturned\UnturnedMarketplacePlugin.csproj", "{21D02097-8444-4823-A624-22F7B9718D7A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MarketplacePlugin", "MarketplacePlugin.csproj", "{21D02097-8444-4823-A624-22F7B9718D7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
