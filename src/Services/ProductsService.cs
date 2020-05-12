@@ -6,28 +6,25 @@ using Rocket.Unturned.Player;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using UnityEngine;
 using RestoreMonarchy.MarketplacePlugin.Models;
 using RestoreMonarchy.MarketplacePlugin.Storage;
 using Timer = System.Timers.Timer;
 using Logger = Rocket.Core.Logging.Logger;
 using SDG.Unturned;
-using System.Threading;
 using Math = System.Math;
 using RestoreMonarchy.MarketplacePlugin.Utilities;
+using System.Threading.Tasks;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
     public class ProductsService : MonoBehaviour
     {
         private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
-        private MarketplaceWebClient webClient = new MarketplaceWebClient();
+        private MarketplaceHttpClient httpClient = new MarketplaceHttpClient();
 
         public DataStorage<List<AwaitingCommand>> Storage { get; private set; }
         public List<AwaitingCommand> AwaitingCommands { get; set; }
-
-        public Timer RefreshTimer { get; private set; }
 
         void Awake()
         {
@@ -42,11 +39,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                 Storage.Save(AwaitingCommands);
             }
 
-            ThreadPool.QueueUserWorkItem((a) => RefreshAwaitingCommands());
-
-            RefreshTimer = new Timer(Math.Max(1000, pluginInstance.config.ProductsRefreshMiliseconds));
-            RefreshTimer.Elapsed += (a, b) => RefreshAwaitingCommands();
-            RefreshTimer.Start();
+            Task.Run(RefreshAwaitingCommands);
 
             U.Events.OnPlayerConnected += OnPlayerConnected;            
         }
@@ -61,16 +54,24 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
             }
         }
 
-        public void RefreshAwaitingCommands()
+        public async Task RefreshAwaitingCommands()
         {
-            if (pluginInstance.config.Debug)
-                Logger.Log($"RefreshAwaitingCommands called", ConsoleColor.Yellow);
             IEnumerable<ServerTransaction> transactions;
+            while (pluginInstance.ProductsService != null)
+            {
+                transactions = await httpClient.GetFromJsonAsync<IEnumerable<ServerTransaction>>(
+                    $"/products/server?serverId={pluginInstance.config.ServerId}");
 
-            webClient.Headers["x-api-key"] = pluginInstance.config.ApiKey;
-            transactions = webClient.DownloadJsonAsync<List<ServerTransaction>>(
-                pluginInstance.config.ApiUrl + $"/products/server?serverId={pluginInstance.config.ServerId}")?.GetAwaiter().GetResult();
-            
+                TaskDispatcher.QueueOnMainThread(() => ProcessTransactions(transactions));
+                if (pluginInstance.config.Debug)
+                    Logger.Log($"Transactions Processed", ConsoleColor.Yellow);
+
+                await Task.Delay(Math.Max(1000, pluginInstance.config.ProductsRefreshMiliseconds));
+            }
+        }
+
+        private void ProcessTransactions(IEnumerable<ServerTransaction> transactions)
+        {
             foreach (var transaction in transactions)
             {
                 Logger.Log($"[Received Transaction] {transaction.PlayerName} bought {transaction.ProductTitle}!");
@@ -82,7 +83,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                             ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
                         else
                             AwaitingCommands.Add(new AwaitingCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName));
-                    }                        
+                    }
                     else
                         ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
 
@@ -93,6 +94,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                     }
                 }
             }
+
             Storage.Save(AwaitingCommands);
             InitializeAwaitingCommandsTimers();
         }
@@ -121,19 +123,15 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         }
 
         public void ExecuteCommand(string commandText, string playerId, string playerName)
-        {            
-            TaskDispatcher.QueueOnMainThread(() => 
-            {
-                Logger.Log($"Executing {commandText} for {playerName}[{playerId}]");
-                R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName));
-            });
+        {
+            Logger.Log($"Executing {commandText} for {playerName}[{playerId}]");
+            R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName));
         }
 
         void OnDestroy()
         {
             Storage.Save(AwaitingCommands);
             U.Events.OnPlayerConnected -= OnPlayerConnected;
-            RefreshTimer.Dispose();
             lock (AwaitingCommands)
             {
                 foreach (var command in AwaitingCommands)

@@ -47,7 +47,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                     return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor);
                 }
 
-                return (() => 
+                return () => 
                 {
                     var asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                     if (asset != null)
@@ -55,7 +55,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                         player.Inventory.forceAddItem(new Item(asset.id, item.Amount, item.Quality, item.Metadata), true);
                         UnturnedChat.Say(caller, pluginInstance.Translate("ClaimSuccess", asset.itemName, id), pluginInstance.MessageColor);
                     }
-                });
+                };
             }
         }
     }

@@ -9,6 +9,7 @@ using Rocket.API;
 using Rocket.Core;
 using System.Collections.Generic;
 using SDG.Unturned;
+using Rocket.Core.Utils;
 
 namespace RestoreMonarchy.MarketplacePlugin
 {
@@ -41,11 +42,11 @@ namespace RestoreMonarchy.MarketplacePlugin
                 GetEconomyProvider(0);
 
             ProductsService = gameObject.AddComponent<ProductsService>();
-            Logger.Log("Products service loaded");
+            Logger.Log("Products service loaded", ConsoleColor.DarkGreen);
             MarketItemsService = gameObject.AddComponent<MarketItemsService>();
-            Logger.Log("MarketItems service loaded");
+            Logger.Log("MarketItems service loaded", ConsoleColor.DarkGreen);
             WebSocketsService = gameObject.AddComponent<WebSocketsService>();
-            Logger.Log("WebSocketsService loaded");
+            Logger.Log("WebSocketsService loaded", ConsoleColor.DarkGreen);
 
 			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
         }
@@ -57,15 +58,15 @@ namespace RestoreMonarchy.MarketplacePlugin
                 if ((EconomyPlugin = R.Plugins.GetPlugin(plugin.Key)) != null)
                 {                    
                     EconomyProvider = Activator.CreateInstance(plugin.Value) as IEconomyProvider;
-                    Logger.Log($"EconomyProvider is set to {nameof(plugin.Value)}", ConsoleColor.Green);
-                    break;
+                    Logger.Log($"EconomyProvider is set to {plugin.Value.Name}", ConsoleColor.Green);
+                    return;
                 }
             }
             Logger.LogWarning("No supported Economy plugin found, EconomyProvider is null!");
         }
 
         protected override void Unload()
-        {            
+        {
             Level.onPostLevelLoaded -= GetEconomyProvider;
             Destroy(ProductsService);
             Destroy(MarketItemsService);

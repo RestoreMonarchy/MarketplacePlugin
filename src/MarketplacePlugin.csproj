@@ -89,7 +89,7 @@
     <Compile Include="Services\ProductsService.cs" />
     <Compile Include="Services\WebSocketsService.cs" />
     <Compile Include="Storage\ProductsStorage.cs" />
-    <Compile Include="Utilities\HttpWebClient.cs" />
+    <Compile Include="Utilities\MarketplaceHttpClient.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

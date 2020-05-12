@@ -1,15 +1,14 @@
 ﻿using Marketplace.Shared;
-using Newtonsoft.Json;
 using SDG.Unturned;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Logger = Rocket.Core.Logging.Logger;
 using RestoreMonarchy.MarketplacePlugin.Utilities;
+using Rocket.Core.Logging;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
@@ -20,37 +19,37 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
 
         void Awake()
         {
-            try
-            {
-                AwakeAsync()?.GetAwaiter().GetResult();
-            } catch (Exception e)
-            {
-                Logger.LogException(e);
-            }            
+            Task.Run(AwakeAsync).Wait();       
         }
 
         private async Task AwakeAsync()
         {
-            var existingItems = await httpClient.GetFromJsonAsync<IEnumerable<UnturnedItem>>(
-                pluginInstance.config.ApiUrl + "/unturneditems");
-            var existingItemsId = existingItems.Select(x => x.ItemId);
-
-            Logger.Log($"There are {existingItems.Count()} already existing items");
-
-            foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
+            try
             {
-                if (!string.IsNullOrEmpty(asset.itemName) && !asset.itemName.Equals("#NAME") && !existingItemsId.Contains(asset.id))
+                var existingItems = await httpClient.GetFromJsonAsync<IEnumerable<UnturnedItem>>("unturneditems");
+                if (existingItems == null)
                 {
-                    try
+                    Logger.LogWarning("Failed to download existing items from Web API");
+                    return;
+                }   
+
+                var existingItemsId = existingItems.Select(x => x.ItemId);                
+                Logger.Log($"There are {existingItems.Count()} already existing items", ConsoleColor.Green);
+                
+                int num = 0;
+                foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
+                {
+                    if (!string.IsNullOrEmpty(asset.itemName) && !asset.itemName.Equals("#NAME") && !existingItemsId.Contains(asset.id))
                     {
                         await UploadUnturnedItemAsync(new UnturnedItem(asset.id, asset.itemName, (Marketplace.Shared.EItemType)asset.type,
                             asset.itemDescription, asset.amount));
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogException(e);
+                        num++;
                     }
                 }
+                Logger.Log($"{num} items have been uploaded!", ConsoleColor.Green);
+            } catch (Exception e)
+            {
+                Logger.LogException(e);
             }
         }
 

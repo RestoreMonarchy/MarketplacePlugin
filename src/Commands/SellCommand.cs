@@ -6,10 +6,10 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Reflection;
 using Marketplace.Shared;
-using System.Threading;
 using Rocket.Core.Utils;
 using System.Net;
 using System.Threading.Tasks;
+using Logger = Rocket.Core.Logging.Logger;
 
 namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
@@ -66,25 +66,30 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                     async Task<System.Action> ProcessSell()
                     {
                         var responseStatus = await pluginInstance.MarketItemsService.UploadMarketItemAsync(item);
+                        void CloseInventory()
+                        {
+                            interactableStorage.items.clear();
+                            player.Inventory.closeStorageAndNotifyClient();
+                            Object.Destroy(interactableStorage);
 
-                        interactableStorage.items.clear();
-                        player.Inventory.closeStorageAndNotifyClient();
-                        Object.Destroy(interactableStorage);
-
-                        player.Inventory.onInventoryAdded -= inventoryAdded;
-                        player.Inventory.onInventoryResized -= inventoryResized;
+                            player.Inventory.onInventoryAdded -= inventoryAdded;
+                            player.Inventory.onInventoryResized -= inventoryResized;
+                        };
+                            
 
                         switch (responseStatus)
                         {
                             case HttpStatusCode.OK:
                                 return () =>
                                 {
+                                    CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
                                 };
                             case HttpStatusCode.Conflict:
                                 return () =>
                                 {
+                                    CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor);
@@ -92,12 +97,14 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                             default:
                                 return () =>
                                 {
+                                    CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
                                     UnturnedChat.Say(player, pluginInstance.Translate("SellTimeout", asset.itemName), pluginInstance.MessageColor);
                                 };
                         }
                     }
+                        
                 }
             };
             
