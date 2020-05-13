@@ -81,6 +81,7 @@
     <Compile Include="Commands\SellCommand.cs" />
     <Compile Include="Economy\IEconomyProvider.cs" />
     <Compile Include="Economy\UconomyEconomyProvider.cs" />
+    <Compile Include="Logging\ServiceLogger.cs" />
     <Compile Include="MarketplaceConfiguration.cs" />
     <Compile Include="MarketplacePlugin.cs" />
     <Compile Include="Models\AwaitingCommand.cs" />

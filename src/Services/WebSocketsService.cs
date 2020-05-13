@@ -2,6 +2,7 @@
 using Marketplace.WebSockets.Attributes;
 using Marketplace.WebSockets.Logger;
 using Marketplace.WebSockets.Models;
+using RestoreMonarchy.MarketplacePlugin.Logging;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
@@ -34,23 +35,20 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         {
             try
             {
-                if (pluginInstance.config.Debug)
-                    Logger.Log("Loading WebSocketsService", ConsoleColor.DarkGreen);
-
                 Manager = new WebSocketsManager(new WebSocketsConsoleLogger(true));
-                Manager.Initialize(GetType().Assembly, new object[] { this });
+                Manager.Initialize(GetType().Assembly, new object[] { this, pluginInstance.ProductsService });
 
                 client.Options.SetRequestHeader("x-api-key", pluginInstance.config.ApiKey);
 
                 await client.ConnectAsync(new Uri(pluginInstance.config.WebSocketUrl),
                     new CancellationTokenSource(pluginInstance.config.TimeoutMiliseconds).Token);
                 await Manager.TellWebSocketAsync(client, "ServerId", null, pluginInstance.Configuration.Instance.ServerId);
-                Logger.Log("Successfully connected to WebSockets server!", ConsoleColor.Green);
-
+                ServiceLogger.LogInformation<WebSocketsService>("Connected to Web!");
                 await Manager.ListenWebSocketAsync(client);
+                ServiceLogger.LogInformation<WebSocketsService>("Disconnect from Web!");
             } catch (Exception e)
             {
-                Logger.LogException(e);
+                ServiceLogger.LogError<WebSocketsService>(e);
             }
         }
 

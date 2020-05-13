@@ -15,6 +15,10 @@ using SDG.Unturned;
 using Math = System.Math;
 using RestoreMonarchy.MarketplacePlugin.Utilities;
 using System.Threading.Tasks;
+using Marketplace.WebSockets.Attributes;
+using Marketplace.WebSockets.Models;
+using Rocket.Core.Logging;
+using RestoreMonarchy.MarketplacePlugin.Logging;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
@@ -39,7 +43,12 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                 Storage.Save(AwaitingCommands);
             }
 
-            Task.Run(RefreshAwaitingCommands);
+            InitializeAwaitingCommandsTimers();
+
+            if (!Level.isLoaded)
+                Level.onLevelLoaded += (i) => Task.Run(ProcessAwaitingTransactions);
+            else
+                Task.Run(ProcessAwaitingTransactions);            
 
             U.Events.OnPlayerConnected += OnPlayerConnected;            
         }
@@ -54,44 +63,45 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
             }
         }
 
-        public async Task RefreshAwaitingCommands()
+        [WebSocketCall("ProductTransaction")]
+        public async Task TellPlayerProductBuyAsync(WebSocketMessage question)
         {
-            IEnumerable<ServerTransaction> transactions;
-            while (pluginInstance.ProductsService != null)
+            var transactionId = question.Arguments[0];
+            var transaction = await httpClient.GetFromJsonAsync<ServerTransaction>($"products/server/{transactionId}");
+            ServiceLogger.LogInformation<ProductsService>($"[Received Transaction] {transaction.PlayerName} purchased {transaction.ProductTitle}!");
+            ProcessTransaction(transaction);
+        }
+
+
+        private async Task ProcessAwaitingTransactions()
+        {
+            var transactions = await httpClient.GetFromJsonAsync<IEnumerable<ServerTransaction>>($"products/server?serverId={pluginInstance.config.ServerId}");
+            ServiceLogger.LogDebug<ProductsService>($"Downloaded {transactions.Count()} uncompleted transactions!");
+            foreach (var transaction in transactions)
             {
-                transactions = await httpClient.GetFromJsonAsync<IEnumerable<ServerTransaction>>(
-                    $"/products/server?serverId={pluginInstance.config.ServerId}");
-
-                TaskDispatcher.QueueOnMainThread(() => ProcessTransactions(transactions));
-                if (pluginInstance.config.Debug)
-                    Logger.Log($"Transactions Processed", ConsoleColor.Yellow);
-
-                await Task.Delay(Math.Max(1000, pluginInstance.config.ProductsRefreshMiliseconds));
+                ProcessTransaction(transaction);
             }
         }
 
-        private void ProcessTransactions(IEnumerable<ServerTransaction> transactions)
+        private void ProcessTransaction(ServerTransaction transaction)
         {
-            foreach (var transaction in transactions)
+            ServiceLogger.LogInformation<ProductsService>($"Processing {transaction.TransactionId} transaction!");
+            foreach (var command in transaction.Commands)
             {
-                Logger.Log($"[Received Transaction] {transaction.PlayerName} bought {transaction.ProductTitle}!");
-                foreach (var command in transaction.Commands)
+                if (command.ExecuteOnBuyerJoinServer)
                 {
-                    if (command.ExecuteOnBuyerJoinServer)
-                    {
-                        if (PlayerTool.getSteamPlayer(ulong.Parse(transaction.PlayerId)) != null)
-                            ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
-                        else
-                            AwaitingCommands.Add(new AwaitingCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName));
-                    }
-                    else
+                    if (PlayerTool.getSteamPlayer(ulong.Parse(transaction.PlayerId)) != null)
                         ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
+                    else
+                        AwaitingCommands.Add(new AwaitingCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName));
+                }
+                else
+                    ExecuteCommand(command.CommandText, transaction.PlayerId, transaction.PlayerName);
 
-                    if (command.Expires)
-                    {
-                        AwaitingCommands.Add(new AwaitingCommand(command.ExpireCommand, transaction.PlayerId,
-                            transaction.PlayerName, false, DateTime.Now.AddSeconds(command.ExpireTime)));
-                    }
+                if (command.Expires)
+                {
+                    AwaitingCommands.Add(new AwaitingCommand(command.ExpireCommand, transaction.PlayerId,
+                        transaction.PlayerName, false, DateTime.Now.AddSeconds(command.ExpireTime)));
                 }
             }
 
@@ -124,7 +134,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
 
         public void ExecuteCommand(string commandText, string playerId, string playerName)
         {
-            Logger.Log($"Executing {commandText} for {playerName}[{playerId}]");
+            ServiceLogger.LogInformation<ProductsService>($"Executing {commandText} for {playerName}[{playerId}]");
             R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName));
         }
 
@@ -132,6 +142,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         {
             Storage.Save(AwaitingCommands);
             U.Events.OnPlayerConnected -= OnPlayerConnected;
+            Level.onLevelLoaded -= (i) => Task.Run(ProcessAwaitingTransactions); 
             lock (AwaitingCommands)
             {
                 foreach (var command in AwaitingCommands)

@@ -10,6 +10,7 @@ using Rocket.Core;
 using System.Collections.Generic;
 using SDG.Unturned;
 using Rocket.Core.Utils;
+using RestoreMonarchy.MarketplacePlugin.Logging;
 
 namespace RestoreMonarchy.MarketplacePlugin
 {
@@ -35,6 +36,7 @@ namespace RestoreMonarchy.MarketplacePlugin
         {
             Instance = this;
             MessageColor = Rocket.Unturned.Chat.UnturnedChat.GetColorFromName(config.MessageColor, UnityEngine.Color.green);
+            ServiceLogger.IsDebug = config.Debug;
 
             if (!Level.isLoaded)
                 Level.onPostLevelLoaded += GetEconomyProvider;
@@ -42,13 +44,13 @@ namespace RestoreMonarchy.MarketplacePlugin
                 GetEconomyProvider(0);
 
             ProductsService = gameObject.AddComponent<ProductsService>();
-            Logger.Log("Products service loaded", ConsoleColor.DarkGreen);
+            ServiceLogger.LogDebug<ProductsService>("Service loaded.");
             MarketItemsService = gameObject.AddComponent<MarketItemsService>();
-            Logger.Log("MarketItems service loaded", ConsoleColor.DarkGreen);
+            ServiceLogger.LogDebug<MarketItemsService>("Service loaded.");
             WebSocketsService = gameObject.AddComponent<WebSocketsService>();
-            Logger.Log("WebSocketsService loaded", ConsoleColor.DarkGreen);
+            ServiceLogger.LogDebug<WebSocketsService>("Service loaded.");
 
-			Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
+            Logger.Log($"{Name} {Assembly.GetName().Version} has been loaded!", ConsoleColor.Yellow);
         }
 
         private void GetEconomyProvider(int a)
@@ -72,11 +74,6 @@ namespace RestoreMonarchy.MarketplacePlugin
             Destroy(MarketItemsService);
             Destroy(WebSocketsService);
             Logger.Log($"{Name} has been unloaded!", ConsoleColor.Yellow);
-        }
-
-        void OnDestroy()
-        {
-            Console.WriteLine("plugin has been destroyed btw");
         }
 
         public override TranslationList DefaultTranslations => new TranslationList() 

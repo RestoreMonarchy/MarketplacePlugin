@@ -6,9 +6,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using UnityEngine;
-using Logger = Rocket.Core.Logging.Logger;
 using RestoreMonarchy.MarketplacePlugin.Utilities;
-using Rocket.Core.Logging;
+using RestoreMonarchy.MarketplacePlugin.Logging;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
@@ -29,12 +28,11 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                 var existingItems = await httpClient.GetFromJsonAsync<IEnumerable<UnturnedItem>>("unturneditems");
                 if (existingItems == null)
                 {
-                    Logger.LogWarning("Failed to download existing items from Web API");
                     return;
                 }   
 
-                var existingItemsId = existingItems.Select(x => x.ItemId);                
-                Logger.Log($"There are {existingItems.Count()} already existing items", ConsoleColor.Green);
+                var existingItemsId = existingItems.Select(x => x.ItemId);
+                ServiceLogger.LogInformation<MarketItemsService>($"There are {existingItems.Count()} already existing items");
                 
                 int num = 0;
                 foreach (ItemAsset asset in Assets.find(EAssetType.ITEM))
@@ -46,19 +44,18 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                         num++;
                     }
                 }
-                Logger.Log($"{num} items have been uploaded!", ConsoleColor.Green);
+                ServiceLogger.LogInformation<MarketItemsService>($"{num} items have been uploaded!");
             } catch (Exception e)
             {
-                Logger.LogException(e);
+                ServiceLogger.LogError<MarketItemsService>(e);
             }
         }
 
         public async Task<HttpStatusCode> UploadMarketItemAsync(MarketItem marketItem)
         {
-            if (pluginInstance.config.Debug)
-                Logger.LogWarning($"Uploading new listing for {marketItem.ItemId} from {marketItem.SellerId}...");
-
+            ServiceLogger.LogDebug<MarketItemsService>($"Uploading new listing for {marketItem.ItemId} from {marketItem.SellerId}...");
             var response = await httpClient.PostAsJsonAsync("marketitems", marketItem);
+            ServiceLogger.LogInformation<MarketItemsService>($"{marketItem.SellerName}[{marketItem.SellerId}] listing for {marketItem.ItemId} has been uploaded!");
             return response.StatusCode;
         }
 
@@ -69,10 +66,8 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
 
         public async Task<HttpStatusCode> UploadUnturnedItemAsync(UnturnedItem unturnedItem)
         {
-            if (pluginInstance.config.Debug)
-                Logger.LogWarning($"Uploading UnturnedItem {unturnedItem.ItemName}[{unturnedItem.ItemId}]...");
-
             var response = await httpClient.PostAsJsonAsync("unturneditems", unturnedItem);
+            ServiceLogger.LogDebug<MarketItemsService>($"{unturnedItem.ItemName}[{unturnedItem.ItemId}] has been uploaded!");
             return response.StatusCode;
         }
 
