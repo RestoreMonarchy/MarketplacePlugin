@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using SDG.Unturned;
 using Rocket.Core.Utils;
 using RestoreMonarchy.MarketplacePlugin.Logging;
+using System.Net;
 
 namespace RestoreMonarchy.MarketplacePlugin
 {
@@ -42,6 +43,8 @@ namespace RestoreMonarchy.MarketplacePlugin
                 Level.onPostLevelLoaded += GetEconomyProvider;
             else
                 GetEconomyProvider(0);
+
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
             ProductsService = gameObject.AddComponent<ProductsService>();
             ServiceLogger.LogDebug<ProductsService>("Service loaded.");

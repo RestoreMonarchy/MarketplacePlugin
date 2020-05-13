@@ -4,11 +4,11 @@ using Marketplace.WebSockets.Logger;
 using Marketplace.WebSockets.Models;
 using RestoreMonarchy.MarketplacePlugin.Logging;
 using System;
+using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using Logger = Rocket.Core.Logging.Logger;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
 {
@@ -16,7 +16,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
     {
         private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
 
-        private ClientWebSocket client = new ClientWebSocket();
+        private ClientWebSocket client;
 
         public WebSocketsManager Manager { get; private set; }
 
@@ -30,19 +30,22 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
             if (client.CloseStatus == null)
                 client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Service Destroy", CancellationToken.None).Wait();
         }
-        
+
         private async Task AwakeAsync()
         {
             try
             {
                 Manager = new WebSocketsManager(new WebSocketsConsoleLogger(true));
                 Manager.Initialize(GetType().Assembly, new object[] { this, pluginInstance.ProductsService });
+                client = new ClientWebSocket();
 
                 client.Options.SetRequestHeader("x-api-key", pluginInstance.config.ApiKey);
-
+                
                 await client.ConnectAsync(new Uri(pluginInstance.config.WebSocketUrl),
                     new CancellationTokenSource(pluginInstance.config.TimeoutMiliseconds).Token);
+
                 await Manager.TellWebSocketAsync(client, "ServerId", null, pluginInstance.Configuration.Instance.ServerId);
+
                 ServiceLogger.LogInformation<WebSocketsService>("Connected to Web!");
                 await Manager.ListenWebSocketAsync(client);
                 ServiceLogger.LogInformation<WebSocketsService>("Disconnect from Web!");
