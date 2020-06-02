@@ -22,9 +22,11 @@ namespace RestoreMonarchy.MarketplacePlugin.Logging
                 Logger.Log($"{typeof(T).Name} >> {msg}", ConsoleColor.DarkGreen);
         }
 
-        public static void LogError<T>(Exception e)
+        public static void LogError<T>(Exception e, string msg = null)
         {
-            Logger.Log($"{typeof(T).Name} >> {e.Message}", ConsoleColor.Red);
+            if (msg == null)
+                msg = e.Message;
+            Logger.Log($"{typeof(T).Name} >> {msg}", ConsoleColor.Red);
             if (IsDebug)
                 Logger.LogException(e);
         }

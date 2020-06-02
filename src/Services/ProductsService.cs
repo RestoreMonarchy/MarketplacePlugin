@@ -17,7 +17,6 @@ using RestoreMonarchy.MarketplacePlugin.Utilities;
 using System.Threading.Tasks;
 using Marketplace.WebSockets.Attributes;
 using Marketplace.WebSockets.Models;
-using Rocket.Core.Logging;
 using RestoreMonarchy.MarketplacePlugin.Logging;
 
 namespace RestoreMonarchy.MarketplacePlugin.Services
@@ -135,7 +134,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         public void ExecuteCommand(string commandText, string playerId, string playerName)
         {
             ServiceLogger.LogInformation<ProductsService>($"Executing {commandText} for {playerName}[{playerId}]");
-            R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName));
+            TaskDispatcher.QueueOnMainThread(() => R.Commands.Execute(null, commandText.Replace("{PlayerId}", playerId).Replace("{PlayerName}", playerName)));
         }
 
         void OnDestroy()

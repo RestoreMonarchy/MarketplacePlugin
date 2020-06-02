@@ -3,6 +3,8 @@ using Marketplace.WebSockets.Attributes;
 using Marketplace.WebSockets.Logger;
 using Marketplace.WebSockets.Models;
 using RestoreMonarchy.MarketplacePlugin.Logging;
+using Rocket.Core.Utils;
+using SDG.Unturned;
 using System;
 using System.Net;
 using System.Net.WebSockets;
@@ -35,7 +37,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         {
             try
             {
-                Manager = new WebSocketsManager(new WebSocketsConsoleLogger(true));
+                Manager = new WebSocketsManager(new RocketWebSocketsLogger());
                 Manager.Initialize(GetType().Assembly, new object[] { this, pluginInstance.ProductsService });
                 client = new ClientWebSocket();
 
@@ -68,8 +70,11 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
         {
             var playerId = question.Arguments[0];
             var amount = Convert.ToDecimal(question.Arguments[1]);
-            var result = pluginInstance.EconomyProvider.IncrementPlayerBalance(playerId, amount);
-            await Manager.TellWebSocketAsync(client, "IncrementPlayerBalance", question.Id, result);
+            TaskDispatcher.QueueOnMainThread(() =>
+            {
+                var result = pluginInstance.EconomyProvider.IncrementPlayerBalance(playerId, amount);
+                Task.Run(() => Manager.TellWebSocketAsync(client, "IncrementPlayerBalance", question.Id, result));
+            });
         }
 
         [WebSocketCall("Pay")]
@@ -78,8 +83,11 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
             var senderId = question.Arguments[0];
             var receiverId = question.Arguments[1];
             var amount = Convert.ToDecimal(question.Arguments[2]);
-            var result = pluginInstance.EconomyProvider.Pay(senderId, receiverId, amount);
-            await Manager.TellWebSocketAsync(client, "Pay", question.Id, result);
+            TaskDispatcher.QueueOnMainThread(() =>
+            {
+                var result = pluginInstance.EconomyProvider.Pay(senderId, receiverId, amount);
+                Task.Run(() => Manager.TellWebSocketAsync(client, "Pay", question.Id, result));
+            });
         }
     }
 }

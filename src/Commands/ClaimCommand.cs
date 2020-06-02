@@ -44,7 +44,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                 MarketItem item = await pluginInstance.MarketItemsService.ClaimMarketItem(id, player.Id);
                 if (item == null || item.BuyerId != player.Id || item.IsClaimed)
                 {
-                    return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimedAlready"), pluginInstance.MessageColor);
+                    return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimAlready"), pluginInstance.MessageColor);
                 }
 
                 return () => 

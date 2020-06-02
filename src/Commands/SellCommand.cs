@@ -56,7 +56,10 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
             {
                 if (page == PlayerInventory.STORAGE && player.Inventory.storage == interactableStorage)
                 {                    
-                    var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id);
+                    var item = new MarketItem(jar.item.id, price, jar.item.quality, jar.item.amount, jar.item.state, player.Id) 
+                    { 
+                        SellerName = player.SteamName
+                    };
 
                     Task.Run(ProcessSell).ContinueWith(c => 
                     {

@@ -27,7 +27,8 @@ namespace RestoreMonarchy.MarketplacePlugin
 
         public static Dictionary<string, Type> SupportedEconomyPlugins = new Dictionary<string, Type>()
         {
-            { "Uconomy", typeof(UconomyEconomyProvider) }
+            //{ "AviEconomy", typeof(AviEconomyProvider) },
+            { "Uconomy", typeof(UconomyEconomyProvider) }             
         };
 
         public IRocketPlugin EconomyPlugin { get; private set; }
@@ -81,14 +82,13 @@ namespace RestoreMonarchy.MarketplacePlugin
 
         public override TranslationList DefaultTranslations => new TranslationList() 
         {
-            { "ClaimInvalid", "Invalid usage. Use: /claim <orderId>" },
+            { "ClaimInvalid", "Invalid usage. Use: /claim ID" },
             { "ClaimAlready", "You have already claimed this order or it's not yours!" },
             { "ClaimSuccess", "Successfully claimed your {0} of order {1}!" },
-            { "SellInvalid", "Invalid usage. Use: /claim <price>" },
+            { "SellInvalid", "Invalid usage. Use: /sell price" },
             { "SellSuccess", "Successfully put your {0} on sale for {1}!" },
             { "SellTimeout", "Timeout, Try again later. {0} returned" },
             { "SellLimit", "You have reached the limit of maximum active sellings. {0} returned" }
         };
     }
 }
-

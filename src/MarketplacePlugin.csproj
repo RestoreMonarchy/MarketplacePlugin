@@ -39,6 +39,9 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>lib\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="AviEconomy">
+      <HintPath>lib\AviEconomy.dll</HintPath>
+    </Reference>
     <Reference Include="Marketplace.Shared">
       <HintPath>lib\Marketplace.Shared.dll</HintPath>
     </Reference>
@@ -79,8 +82,10 @@
   <ItemGroup>
     <Compile Include="Commands\ClaimCommand.cs" />
     <Compile Include="Commands\SellCommand.cs" />
+    <Compile Include="Economy\AviEconomyProvider.cs" />
     <Compile Include="Economy\IEconomyProvider.cs" />
     <Compile Include="Economy\UconomyEconomyProvider.cs" />
+    <Compile Include="Logging\RocketWebSocketsLogger.cs" />
     <Compile Include="Logging\ServiceLogger.cs" />
     <Compile Include="MarketplaceConfiguration.cs" />
     <Compile Include="MarketplacePlugin.cs" />
