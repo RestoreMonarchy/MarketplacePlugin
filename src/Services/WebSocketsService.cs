@@ -1,12 +1,9 @@
 ﻿using Marketplace.WebSockets;
 using Marketplace.WebSockets.Attributes;
-using Marketplace.WebSockets.Logger;
 using Marketplace.WebSockets.Models;
 using RestoreMonarchy.MarketplacePlugin.Logging;
 using Rocket.Core.Utils;
-using SDG.Unturned;
 using System;
-using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +21,15 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
 
         void Awake()
         {
-            Task.Run(AwakeAsync);
+            Manager = new WebSocketsManager(new RocketWebSocketsLogger());
+            Manager.Initialize(GetType().Assembly, new object[] { this, pluginInstance.ProductsService });
+            client = new ClientWebSocket();
+            client.Options.SetRequestHeader("x-api-key", pluginInstance.config.ApiKey);
+        }
+
+        void Start()
+        {
+            Task.Run(StartAsync);
         }
 
         void OnDestroy()
@@ -33,16 +38,10 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
                 client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Service Destroy", CancellationToken.None).Wait();
         }
 
-        private async Task AwakeAsync()
+        private async Task StartAsync()
         {
             try
-            {
-                Manager = new WebSocketsManager(new RocketWebSocketsLogger());
-                Manager.Initialize(GetType().Assembly, new object[] { this, pluginInstance.ProductsService });
-                client = new ClientWebSocket();
-
-                client.Options.SetRequestHeader("x-api-key", pluginInstance.config.ApiKey);
-                
+            {   
                 await client.ConnectAsync(new Uri(pluginInstance.config.WebSocketUrl),
                     new CancellationTokenSource(pluginInstance.config.TimeoutMiliseconds).Token);
 
@@ -54,6 +53,9 @@ namespace RestoreMonarchy.MarketplacePlugin.Services
             } catch (Exception e)
             {
                 ServiceLogger.LogError<WebSocketsService>(e);
+                await Task.Delay(pluginInstance.Configuration.Instance.WebSocketsReconnectDelayMiliseconds);
+                ServiceLogger.LogInformation<WebSocketsService>("Retrying to connect to web...");
+                await StartAsync();
             }
         }
 
