@@ -35,7 +35,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
 
             if (command.Length < 1 || !decimal.TryParse(command[0], out decimal price))
             {
-                UnturnedChat.Say(player, pluginInstance.Translate("SellInvalid"), pluginInstance.MessageColor);
+                UnturnedChat.Say(player, pluginInstance.Translate("SellInvalid"), pluginInstance.MessageColor, true);
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                                 {
                                     CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
-                                    UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor);
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellSuccess", asset.itemName, price), pluginInstance.MessageColor, true);
                                 };
                             case HttpStatusCode.Conflict:
                                 return () =>
@@ -95,7 +95,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                                     CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
-                                    UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor);
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellLimit", asset.itemName), pluginInstance.MessageColor, true);
                                 };
                             default:
                                 return () =>
@@ -103,7 +103,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                                     CloseInventory();
                                     ItemAsset asset = Assets.find(EAssetType.ITEM, (ushort)item.ItemId) as ItemAsset;
                                     player.Inventory.forceAddItem(jar.item, true);
-                                    UnturnedChat.Say(player, pluginInstance.Translate("SellTimeout", asset.itemName), pluginInstance.MessageColor);
+                                    UnturnedChat.Say(player, pluginInstance.Translate("SellTimeout", asset.itemName), pluginInstance.MessageColor, true);
                                 };
                         }
                     }

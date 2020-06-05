@@ -29,7 +29,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
         {
             if (command.Length < 1 || !int.TryParse(command[0], out int id))
             {
-                UnturnedChat.Say(caller, pluginInstance.Translate("ClaimInvalid"), pluginInstance.MessageColor);
+                UnturnedChat.Say(caller, pluginInstance.Translate("ClaimInvalid"), pluginInstance.MessageColor, true);
                 return;
             }
             UnturnedPlayer player = (UnturnedPlayer)caller;
@@ -44,7 +44,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                 MarketItem item = await pluginInstance.MarketItemsService.ClaimMarketItem(id, player.Id);
                 if (item == null || item.BuyerId != player.Id || item.IsClaimed)
                 {
-                    return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimAlready"), pluginInstance.MessageColor);
+                    return () => UnturnedChat.Say(caller, pluginInstance.Translate("ClaimAlready"), pluginInstance.MessageColor, true);
                 }
 
                 return () => 
@@ -53,7 +53,7 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                     if (asset != null)
                     {
                         player.Inventory.forceAddItem(new Item(asset.id, item.Amount, item.Quality, item.Metadata), true);
-                        UnturnedChat.Say(caller, pluginInstance.Translate("ClaimSuccess", asset.itemName, id), pluginInstance.MessageColor);
+                        UnturnedChat.Say(caller, pluginInstance.Translate("ClaimSuccess", asset.itemName, id), pluginInstance.MessageColor, true);
                     }
                 };
             }
