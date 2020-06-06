@@ -11,19 +11,10 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
     public class ClaimCommand : IRocketCommand
     {
-        private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
-
-        public AllowedCaller AllowedCaller => AllowedCaller.Player;
-
-        public string Name => "claim";
-
-        public string Help => "Claims your bought market item";
-
-        public string Syntax => "<id>";
-
-        public List<string> Aliases => new List<string>() { "marketclaim" };
-
-        public List<string> Permissions => new List<string>();
+        public ClaimCommand(string name)
+        {
+            Name = name;
+        }
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -58,5 +49,19 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
                 };
             }
         }
+
+        private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
+
+        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+
+        public string Name { get; }
+
+        public string Help => "Claims your bought market item";
+
+        public string Syntax => "<id>";
+
+        public List<string> Aliases => new List<string>() { "marketclaim" };
+
+        public List<string> Permissions => new List<string>();
     }
 }

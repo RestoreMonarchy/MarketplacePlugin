@@ -9,25 +9,15 @@ using Marketplace.Shared;
 using Rocket.Core.Utils;
 using System.Net;
 using System.Threading.Tasks;
-using Logger = Rocket.Core.Logging.Logger;
 
 namespace RestoreMonarchy.MarketplacePlugin.Commands
 {
     public class SellCommand : IRocketCommand
     {
-        private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
-
-        public AllowedCaller AllowedCaller => AllowedCaller.Player;
-
-        public string Name => "sell";
-
-        public string Help => "Starts a sell process";
-
-        public string Syntax => "<price>";
-
-        public List<string> Aliases => new List<string>() { "marketsell" };
-
-        public List<string> Permissions => new List<string>();
+        public SellCommand(string name)
+        {
+            Name = name;
+        }
 
         public void Execute(IRocketPlayer caller, string[] command)
         {
@@ -121,5 +111,19 @@ namespace RestoreMonarchy.MarketplacePlugin.Commands
             player.Inventory.onInventoryAdded += inventoryAdded;
             player.Inventory.onInventoryResized += inventoryResized;
         }
+
+        private MarketplacePlugin pluginInstance => MarketplacePlugin.Instance;
+
+        public AllowedCaller AllowedCaller => AllowedCaller.Player;
+
+        public string Name { get; }
+
+        public string Help => "Starts a sell process";
+
+        public string Syntax => "<price>";
+
+        public List<string> Aliases => new List<string>() { "marketsell" };
+
+        public List<string> Permissions => new List<string>();
     }
 }

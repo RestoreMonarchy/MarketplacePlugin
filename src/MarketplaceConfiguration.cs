@@ -14,6 +14,8 @@ namespace RestoreMonarchy.MarketplacePlugin
         public int TimeoutMiliseconds { get; set; }
         public string MessageColor { get; set; }
         public bool Debug { get; set; }
+        public string SellCommandName { get; set; }
+        public string ClaimCommandName { get; set; }
 
         public void LoadDefaults()
         {            
@@ -26,6 +28,8 @@ namespace RestoreMonarchy.MarketplacePlugin
             TimeoutMiliseconds = 3000;
             MessageColor = "yellow";            
             Debug = true;
+            SellCommandName = "sell";
+            ClaimCommandName = "claim";
         }
     }
 }

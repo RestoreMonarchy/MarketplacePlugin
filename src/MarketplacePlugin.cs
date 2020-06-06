@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using SDG.Unturned;
 using RestoreMonarchy.MarketplacePlugin.Logging;
 using System.Net;
+using RestoreMonarchy.MarketplacePlugin.Commands;
 
 namespace RestoreMonarchy.MarketplacePlugin
 {
@@ -38,6 +39,9 @@ namespace RestoreMonarchy.MarketplacePlugin
             Instance = this;
             MessageColor = Rocket.Unturned.Chat.UnturnedChat.GetColorFromName(config.MessageColor, UnityEngine.Color.green);
             ServiceLogger.IsDebug = config.Debug;
+
+            R.Commands.Register(new SellCommand(Configuration.Instance.SellCommandName));
+            R.Commands.Register(new ClaimCommand(Configuration.Instance.ClaimCommandName));
 
             if (!Level.isLoaded)
                 Level.onPostLevelLoaded += GetEconomyProvider;
